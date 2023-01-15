@@ -3,12 +3,16 @@
 */
 
 %{
-
-	//#include "tokens.h"
 	#include "y.tab.h"
 
 	#include "hash.h"
 	
+	#define SYMBOL_LIT_INTE 1
+	#define SYMBOL_LIT_CARA 2
+	#define SYMBOL_LIT_REAL 3
+	#define SYMBOL_LIT_STRING 4
+	#define SYMBOL_LIT_IDENTIFIER 5
+
 	int running = 1;
 	int lineCount = 1;
 
@@ -35,14 +39,14 @@
 "=="		{ return OPERATOR_EQ; }
 "!="		{ return OPERATOR_DIF; }
 
-[0-9]+					{ hashInsert(LIT_INTEIRO, yytext); return LIT_INTEIRO; }
-[0-9]+"."[0-9]+			{ hashInsert(LIT_FLOAT, yytext); return LIT_FLOAT; }
-'.'						{ hashInsert(LIT_CHAR, yytext); return LIT_CHAR; }
-\"(\\.|[^"\\^(\n)])*\"	{ hashInsert(LIT_STRING, yytext); return LIT_STRING; }
+[0-9]+					{ yylval.symbol = hashInsert(SYMBOL_LIT_INTE, yytext); return LIT_INTEIRO; }
+[0-9]+"."[0-9]+			{ yylval.symbol = hashInsert(SYMBOL_LIT_REAL, yytext); return LIT_FLOAT; }
+'.'						{ yylval.symbol = hashInsert(SYMBOL_LIT_CARA, yytext); return LIT_CHAR; }
+\"(\\.|[^"\\^(\n)])*\"	{ yylval.symbol = hashInsert(SYMBOL_LIT_STRING, yytext); return LIT_STRING; }
 
 
 [-;()\[\]{}=+*/<>&|~]	{ return yytext[0]; }
-([a-z]|_|".")+([a-z]|[0-9]|_|".")* 		{ hashInsert(TK_IDENTIFIER, yytext); return TK_IDENTIFIER; }
+([a-z]|_|".")+([a-z]|[0-9]|_|".")* 		{ yylval.symbol = hashInsert(SYMBOL_LIT_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
 [,\t ]
 

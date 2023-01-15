@@ -7,6 +7,12 @@
 
 #define HASH_SIZE 997
 
+#define SYMBOL_LIT_INTE 1
+#define SYMBOL_LIT_CARA 2
+#define SYMBOL_LIT_REAL 3
+#define SYMBOL_LIT_STRING 4
+#define SYMBOL_LIT_IDENTIFIER 5
+
 typedef struct hash_node
 {
 	int type;

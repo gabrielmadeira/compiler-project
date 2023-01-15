@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
 
 	yyparse();
 
-	printf("\nFile had %d lines\n", getLineNumber());
-	
-	printf("\nRunning: %d \n", isRunning());
-	
+	printf("\nHash Content:\n");
 	hashPrint();
+
+	printf("\nFile had %d lines\n", getLineNumber());
+	printf("\nSuccess!\n\n");
 
 	exit(0);
 }

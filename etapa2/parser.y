@@ -1,11 +1,18 @@
+/*
+        Gabriel Madeira (00322863)
+*/
 
 %{
     #include <stdio.h>
-
-    //int yylex();
+    int getLineNumber();
+    void initMe();
     void yyerror();
-
 %}
+
+%union
+{
+        struct hash_node* symbol;
+}
 
 %token KW_INTE
 %token KW_CARA
@@ -24,77 +31,70 @@
 %token OPERATOR_EQ
 %token OPERATOR_DIF
 
-%token TK_IDENTIFIER
+%token <symbol> TK_IDENTIFIER
 
-%token LIT_INTEIRO
-%token LIT_FLOAT
-%token LIT_CHAR
-%token LIT_STRING
+%token <symbol> LIT_INTEIRO
+%token <symbol> LIT_FLOAT
+%token <symbol> LIT_CHAR
+%token <symbol> LIT_STRING
 
 %token TOKEN_ERROR
 
-%left '<' '>'
+%left '~'
+%left '|'
+%left '&'
+%left '<' '>' OPERATOR_LE OPERATOR_GE OPERATOR_EQ OPERATOR_DIF
 %left '+' '-' 
 %left '*' '/'
 
 
 %%
 
-program: lass
+program: lDecl
         ;
 
-lass: cmd ';' tail     
+lDecl: gvar ';' lDecl
+        | func lDecl
+        |
+        ;
+
+lCom: cmd ';' lCom
         | cmd
-        | block tail
-        | func tail
-        | cond tail
-        |
-        ;
-
-
-tail: cmd ';' tail 
-        | block tail
-        | func tail
-        | cond tail
-        |
         ;       
 
-cmd:    TK_IDENTIFIER '=' expr
-        | gvar
-        | fCall
-        | TK_IDENTIFIER '[' expr ']' '=' expr
-        | KW_ESCREVA escrev
+cmd:    atrib 
+        | comFlux
+        | KW_ESCREVA lstEscr
         | KW_RETORNE expr
+        | block
+        | 
+        ;
+
+gvar:   type TK_IDENTIFIER '=' expr
+        | type TK_IDENTIFIER '[' LIT_INTEIRO ']' lstExpr
+        ;
+
+lstExpr:   expr lstExpr
         |
         ;
 
-cond:   KW_ENTAUM blockOrCmd KW_SE '(' expr ')'
-        | KW_ENTAUM blockOrCmd KW_SENAUM blockOrCmd KW_SE '(' expr ')'
-        | blockOrCmd KW_ENQUANTO '(' expr ')'
-        ;
-
-
-blockOrCmd:     cmd
-                | block
-                ;
-
-escrev: LIT_STRING escrev
-        | expr escrev
+lstEscr:   expr lstEscr
+        | LIT_STRING lstEscr
         |
         ;
 
-block: '{' lass '}'
-        ;
+atrib:
+        TK_IDENTIFIER '=' expr
+        | TK_IDENTIFIER '[' expr ']' '=' expr
 
-
-vect:   expr vect
-        |
+comFlux:   KW_ENTAUM cmd KW_SE '(' expr ')'
+        | KW_ENTAUM cmd KW_SENAUM cmd KW_SE '(' expr ')'
+        | cmd KW_ENQUANTO '(' expr ')'
         ;
 
 expr:   LIT_INTEIRO
         | LIT_CHAR
         | LIT_FLOAT
-        | LIT_STRING
         | TK_IDENTIFIER 
         | TK_IDENTIFIER '[' expr ']'
         | fCall
@@ -115,29 +115,28 @@ expr:   LIT_INTEIRO
         | KW_ENTRADA
         ;
 
-gvar:   type TK_IDENTIFIER '=' expr
-        | type TK_IDENTIFIER '[' LIT_INTEIRO ']' vect
+
+block: '{' lCom '}'
+        ;
+
+func:   type TK_IDENTIFIER '(' fParamList ')' block
+        ;
+
+fParamList:  type TK_IDENTIFIER fParamList
+        |
         ;
 
 type:   KW_INTE
         | KW_CARA
         | KW_REAL
         ;
-    
 
-func:   type TK_IDENTIFIER '(' param ')' block
-        ;
+fCall:  TK_IDENTIFIER '(' fCallParamList ')'
 
-param:  type TK_IDENTIFIER param
+fCallParamList: expr fCallParamList
         |
         ;
 
-fCall:  expr '(' pfCall ')'
-
-pfCall: expr pfCall
-        |
-        ;
-    
 %%
 
 void yyerror() {

@@ -1,5 +1,10 @@
 // UFRGS - Compiladores - Marcelo Johann - 2022/2
 
+// caso declaração global via virgula
+// lista de declaraçẽs
+// variaveis globais, funcções e vetor
+// "string"
+
 cara c='x';
 cara d=100;
 inte a.5='A';
@@ -24,6 +29,8 @@ inte main ()
   escreva a;
   i = 2;
 
+  a = func(a+b g+3);
+
   escreva "Digite um numero: \n";
   a = entrada;
   escreva "Digite mais um numero: \n";
@@ -40,7 +47,7 @@ inte main ()
     a = a + 1;
     escreva "A era=15\n";
     } se (a==15); 
-    
+
   entaum,
     {
     escreva "Nao tem como isso...\n"

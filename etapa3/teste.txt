@@ -1,0 +1,19 @@
+enquanto 12 >= num;
+    num - 165.98;
+    se real _variavel == 0;
+    entaum retorne 38.3423 != 9;
+    senaum escreva "pastel";
+//esconda isso por favor
+cara 'a'
+;;cara 'aa';;
+cara '-' 
+(){}[]+*/<>&|~
+real 12variable
+///
+escreva "sou um comentario"
+"de varias linhas"
+\\\
+entrada "string
+estranha"
+se na.0_func10nar
+entaum ficotriste.png

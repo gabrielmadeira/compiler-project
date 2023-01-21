@@ -1,5 +1,5 @@
 /*
-        Gabriel Madeira (00322863)
+    Gabriel Madeira (00322863)
 */
 
 %{
@@ -11,7 +11,7 @@
 
 %union
 {
-        struct hash_node* symbol;
+    struct hash_node* symbol;
 }
 
 %token KW_INTE

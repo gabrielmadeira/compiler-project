@@ -1,3 +1,7 @@
+/*
+	Gabriel Madeira (00322863)
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
@@ -25,6 +29,7 @@ void astPrint(AST* node, int level){
     for(i=0; i<level; ++i)
         fprintf(stderr,"  ");
     fprintf(stderr, "AST(");
+
     switch (node->type)
     {
         case AST_SYMBOL: fprintf(stderr, "AST_SYMBOL"); break;
@@ -32,19 +37,49 @@ void astPrint(AST* node, int level){
         case AST_SUB: fprintf(stderr, "AST_SUB"); break;
         case AST_MUL: fprintf(stderr, "AST_MUL"); break;
         case AST_DIV: fprintf(stderr, "AST_DIV"); break;
+        case AST_LES: fprintf(stderr, "AST_LES"); break;
+        case AST_GRE: fprintf(stderr, "AST_GRE"); break;
+        case AST_AND: fprintf(stderr, "AST_AND"); break;
+        case AST_OR: fprintf(stderr, "AST_OR"); break;
+        case AST_NOT: fprintf(stderr, "AST_NOT"); break;
+        case AST_LE: fprintf(stderr, "AST_LE"); break;
+        case AST_GE: fprintf(stderr, "AST_GE"); break;
+        case AST_EQ: fprintf(stderr, "AST_EQ"); break;
+        case AST_DIF: fprintf(stderr, "AST_DIF"); break;
         case AST_ASS: fprintf(stderr, "AST_ASS"); break;
+        case AST_LDCG: fprintf(stderr, "AST_LDCG"); break;
+        case AST_LDCF: fprintf(stderr, "AST_LDCF"); break;
+        case AST_LCMD: fprintf(stderr, "AST_LCMD"); break;
+        case AST_ARAS: fprintf(stderr, "AST_ARAS"); break;
+        case AST_ENTSE: fprintf(stderr, "AST_ENTSE"); break;
+        case AST_ENTSNSE: fprintf(stderr, "AST_ENTSNSE"); break;
+        case AST_ENQ: fprintf(stderr, "AST_ENQ"); break;
+        case AST_ESCR: fprintf(stderr, "AST_ESCR"); break;
+        case AST_RET: fprintf(stderr, "AST_RET"); break;
+        case AST_GVAR: fprintf(stderr, "AST_GVAR"); break;
+        case AST_GARR: fprintf(stderr, "AST_GARR"); break;
+        case AST_LEXP: fprintf(stderr, "AST_LEXP"); break;
+        case AST_LEEXP: fprintf(stderr, "AST_LEEXP"); break;
+        case AST_LESTR: fprintf(stderr, "AST_LESTR"); break;
+        case AST_ACALL: fprintf(stderr, "AST_ACALL"); break;
+        case AST_FCALL: fprintf(stderr, "AST_FCALL"); break;
+        case AST_PAR: fprintf(stderr, "AST_PAR"); break;
+        case AST_BLOCK: fprintf(stderr, "AST_BLOCK"); break;
+        case AST_FPL: fprintf(stderr, "AST_FPL"); break;
+        case AST_FCPL: fprintf(stderr, "AST_FCPL"); break;
+        case AST_ENTRADA: fprintf(stderr, "AST_ENTRADA"); break;
+        case AST_INTE: fprintf(stderr, "AST_INTE"); break;
+        case AST_CARA: fprintf(stderr, "AST_CARA"); break;
+        case AST_REAL: fprintf(stderr, "AST_REAL"); break;
         default: fprintf(stderr, "AST_UNKNOWN(%d)",node->type); break;
     }
 
     if(node->symbol != 0)
-        fprintf(stderr, ",%s\n", node->symbol->text);
+        fprintf(stderr, ",%s)\n", node->symbol->text);
     else
-        fprintf(stderr, ",0\n");
+        fprintf(stderr, ",0)\n");
     for (i=0; i<MAX_SONS; ++i)
         astPrint(node->son[i], level+1);
-    //for(i=0; i<level; ++i)
-    //    fprintf(stderr,"  ");
-    //fprintf(stderr,")\n");
 }
 
 void astDecompile(AST* node) {
@@ -94,9 +129,8 @@ void astDecompile(AST* node) {
             astDecompile(node->son[1]);
             break;
         case AST_NOT:
-            astDecompile(node->son[0]);
             fprintf(outputFile, "~");
-            astDecompile(node->son[1]);
+            astDecompile(node->son[0]);
             break;
         case AST_LE:
             astDecompile(node->son[0]);
@@ -124,7 +158,17 @@ void astDecompile(AST* node) {
             fprintf(outputFile, ")");
             break;
         case AST_ENTRADA:
-            fprintf(outputFile, "ENTRADA ");
+            fprintf(outputFile, "entrada ");
+            break;
+        case AST_ACALL:
+            fprintf(outputFile, "%s[",node->symbol->text);
+            astDecompile(node->son[0]);
+            fprintf(outputFile, "]");
+            break;
+        case AST_FCALL:
+            fprintf(outputFile, "%s(",node->symbol->text);
+            astDecompile(node->son[0]);
+            fprintf(outputFile, ")");
             break;
         case AST_LDCG:
             astDecompile(node->son[0]);
@@ -137,13 +181,96 @@ void astDecompile(AST* node) {
             astDecompile(node->son[1]);
             fprintf(outputFile, ") ");
             astDecompile(node->son[2]);
-            fprintf(outputFile, ";\n");
             astDecompile(node->son[3]);
             break;
-        case AST_LCOM:
+        case AST_LCMD:
             astDecompile(node->son[0]);
             fprintf(outputFile, ";\n");
             astDecompile(node->son[1]);
+            break;
+        case AST_ASS:
+            fprintf(outputFile, "%s",node->symbol->text);
+            fprintf(outputFile, "=");
+            astDecompile(node->son[0]);
+            break;
+        case AST_ARAS:
+            fprintf(outputFile, "%s[",node->symbol->text);
+            astDecompile(node->son[0]);
+            fprintf(outputFile, "]=");
+            astDecompile(node->son[1]);
+            break;
+        case AST_ENTSE:
+            fprintf(outputFile, "entaum ");
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " se (");
+            astDecompile(node->son[1]);
+            fprintf(outputFile, ")");
+            break;
+        case AST_ENTSNSE:
+            fprintf(outputFile, "entaum ");
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " senaum ");
+            astDecompile(node->son[1]);
+            fprintf(outputFile, " se (");
+            astDecompile(node->son[2]);
+            fprintf(outputFile, ")");
+            break;
+        case AST_ENQ:
+            astDecompile(node->son[0]);
+            fprintf(outputFile, "enquanto (");
+            astDecompile(node->son[1]);
+            fprintf(outputFile, ")");
+            break;
+        case AST_ESCR:
+            fprintf(outputFile, "escreva ");
+            astDecompile(node->son[0]);
+            break;
+        case AST_RET:
+            fprintf(outputFile, "retorne ");
+            astDecompile(node->son[0]);
+            break;
+        case AST_GVAR:
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " %s",node->symbol->text);
+            fprintf(outputFile, "=");
+            astDecompile(node->son[1]);
+            break;
+        case AST_GARR:
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " %s[",node->symbol->text);
+            astDecompile(node->son[1]);
+            fprintf(outputFile, "] ");
+            astDecompile(node->son[2]);
+            break;
+        case AST_LEXP:
+        case AST_LEEXP:
+        case AST_FCPL:
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " ");
+            astDecompile(node->son[1]);
+            break;
+        case AST_LESTR:
+            fprintf(outputFile, "%s ",node->symbol->text);
+            astDecompile(node->son[0]);
+            break;
+        case AST_BLOCK:
+            fprintf(outputFile, " {\n");
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " }\n");
+            break;
+        case AST_FPL:
+            astDecompile(node->son[0]);
+            fprintf(outputFile, " %s ",node->symbol->text);
+            astDecompile(node->son[1]);
+            break;
+        case AST_INTE:
+            fprintf(outputFile, "inte");
+            break;
+        case AST_CARA:
+            fprintf(outputFile, "cara");
+            break;
+        case AST_REAL:
+            fprintf(outputFile, "real");
             break;
     }
 }

@@ -5,6 +5,9 @@
 %{
     #include "hash.h"
     #include "ast.h"
+
+    AST *mainNode;
+
     int yylex(void); 
 	int getLineNumber();
 
@@ -14,9 +17,7 @@
 
 %union 
 {
-    //HASH *symbol;
     struct hash_node* symbol;
-    //AST* ast;
     struct ast_node* ast;
 }
 
@@ -71,7 +72,7 @@
 
 %%
 
-program: lDecl { $$ = $1; } { astDecompile($1); } //astPrint($1,0);
+program: lDecl { $$ = $1; mainNode = $$; }
         ;
 
 lDecl: gvar ';' lDecl { $$ = astCreate(AST_LDCG, 0,$1,$3,0,0); } 
@@ -127,12 +128,12 @@ expr:   LIT_INTEIRO { $$ = astCreate(AST_SYMBOL, $1,0,0,0,0); }
         | expr '>' expr { $$ = astCreate(AST_GRE, 0,$1,$3,0,0); }
         | expr '&' expr { $$ = astCreate(AST_AND, 0,$1,$3,0,0); }
         | expr '|' expr { $$ = astCreate(AST_OR, 0,$1,$3,0,0); }
-        | expr '~' expr { $$ = astCreate(AST_NOT, 0,$1,$3,0,0); }
+        | '~' expr { $$ = astCreate(AST_NOT, 0,$2,0,0,0); }
         | expr OPERATOR_LE expr { $$ = astCreate(AST_LE, 0,$1,$3,0,0); }
         | expr OPERATOR_GE expr { $$ = astCreate(AST_GE, 0,$1,$3,0,0); }
         | expr OPERATOR_EQ expr { $$ = astCreate(AST_EQ, 0,$1,$3,0,0); }
         | expr OPERATOR_DIF expr { $$ = astCreate(AST_DIF, 0,$1,$3,0,0); }
-        | '(' expr ')' { $$ = astCreate(AST_PAR, 0,$2,0,0,0); } //{ $$ = $2;} 
+        | '(' expr ')' { $$ = astCreate(AST_PAR, 0,$2,0,0,0); } 
         | KW_ENTRADA { $$ = astCreate(AST_ENTRADA, 0,0,0,0,0); } 
         ;
 

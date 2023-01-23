@@ -1,3 +1,6 @@
+/*
+	Gabriel Madeira (00322863)
+*/
 
 #ifndef AST_HEADER
 #define AST_HEADER
@@ -45,7 +48,6 @@
 #define AST_CARA 38
 #define AST_REAL 39
 
-
 #define MAX_SONS 4
 
 typedef struct ast_node
@@ -57,6 +59,7 @@ typedef struct ast_node
 
 AST * astCreate(int type, HASH * symbol, AST* son0, AST* son1, AST* son2, AST* son3);
 void astPrint(AST* node, int level);
+void astDecompile(AST* node);
 
 
 #endif

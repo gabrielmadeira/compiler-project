@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "hash.h"
-//#include "lex.yy.h"
+#include "ast.h"
 
 extern FILE *yyin;
 FILE *outputFile;
+
+extern AST *mainNode;
 
 int yyparse();
 
@@ -33,6 +35,12 @@ int main(int argc, char **argv) {
 	initMe();
 
 	yyparse();
+
+	printf("\nDecompiling...\n");
+	astDecompile(mainNode);
+
+	printf("\nAST Content:\n");
+	astPrint(mainNode,0);
 
 	printf("\nHash Content:\n");
 	hashPrint();

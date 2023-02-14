@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "hash.h"
 #include "ast.h"
+#include "semantic.h"
 
 extern FILE *yyin;
 FILE *outputFile;
@@ -38,6 +39,15 @@ int main(int argc, char **argv) {
 
 	printf("\nDecompiling...\n");
 	astDecompile(mainNode);
+
+	printf("\nPerforming Semantic Verification...\n");
+	semanticVerification(mainNode);
+
+	int semanticErrors = getSemanticErrors();
+	if(semanticErrors > 0) {
+		fprintf(stderr, "%d Semantic errors detected, exiting...\n", semanticErrors);
+		exit(4);	
+	}
 
 	printf("\nAST Content:\n");
 	astPrint(mainNode,0);

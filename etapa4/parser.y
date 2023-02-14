@@ -5,6 +5,7 @@
 %{
     #include "hash.h"
     #include "ast.h"
+    #include "semantic.h"
 
     AST *mainNode;
 

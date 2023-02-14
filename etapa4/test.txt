@@ -1,0 +1,11 @@
+inte a = 5;
+inte b = 1;
+inte a = 2;
+real c = 4;
+inte fun() {
+    a = 5;
+    b = 777;
+    x = 99 + 1111 + fun(x);
+}
+inte fun = 7;
+

@@ -51,5 +51,18 @@ void hashPrint(void) {
 	HASH * node;
 	for (int i=0; i<HASH_SIZE; i++)
 		for(node=Table[i]; node; node = node->next)
-			printf("Table[%d] has %s\n", i, node->text);
+			printf("Table[%d] has %s, with datatype %d\n", i, node->text, node->datatype);
 } 
+
+int hashCheckUndeclared(void) {
+	int undeclared = 0;
+	HASH * node;
+	for (int i=0; i<HASH_SIZE; i++)
+		for(node=Table[i]; node; node = node->next){
+			if(node->type == SYMBOL_LIT_IDENTIFIER){
+				printf("Semantic Error: symbol %s undeclared.\n", node->text);
+				undeclared++;
+			}
+		}
+	return undeclared;
+}

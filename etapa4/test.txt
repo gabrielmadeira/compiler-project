@@ -1,11 +1,26 @@
-inte a = 5;
-inte b = 1;
-inte a = 2;
-real c = 4;
-inte fun() {
-    a = 5;
-    b = 777;
-    x = 99 + 1111 + fun(x);
-}
-inte fun = 7;
+// OK • variáveis redeclaradas
+inte a = 0;
+//inte a = 0;
 
+// OK • anotar tipo (natureza) (escalares, vetores, funções) nas tabela hash 
+
+// OK • anotar tipo de dado (dataType) (cara, inte, real) na tabela hash
+// OK • variáveis não-declaradas
+inte main(inte f, cara g) {
+    //x = a;
+    
+// • verificar natureza, se:
+//     - escalares são usados como escalares
+//     - vetores são usados como vetores
+//     - funções são usadas como funções
+//     - não esqueça de verificar no lado direito (expressões) e no lado esquerdo (atribuições)
+// • verificar tipos de dados nas expressões
+// • verificar argumentos de chamada de função versus parâmetros:
+//     - não pode haver menos argumentos
+//     - não pode haver mais argumentos
+//     - os tipos devem ser compatíveis (não iguais, lembre-se)
+// • verificar o tamanho e a lista de inicialização do vetor;
+// • verificar tipo do valor de retorno da função
+// • verificar índices dos vetores (não pode ser booleano, não pode ser real), tanto na expressão quanto na atribuição
+
+}

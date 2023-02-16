@@ -47,6 +47,7 @@
 #define AST_INTE 37
 #define AST_CARA 38
 #define AST_REAL 39
+#define AST_VARCALL 40
 
 #define MAX_SONS 4
 

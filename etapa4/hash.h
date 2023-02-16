@@ -21,11 +21,14 @@
 #define DATAYPE_CARA 2
 #define DATAYPE_REAL 3
 
+typedef struct ast_node AST;
+
 typedef struct hash_node
 {
 	int type;
 	int datatype;
 	char *text;
+	AST *dec;
 	struct hash_node *next;
 } HASH;
 

@@ -1,3 +1,31 @@
-inte a=0;
-inte main (inte f cara g )  {
+inte a=1;
+inte v[4] 2 2 2 '4' ;
+real z[4] 2.2 2.2 2.2 4.2 ;
+real aux (real d inte e )  {
+ }
+inte ehogais ()  {
+escreva "kkk"  }
+inte main (inte f cara g real h )  {
+f=main(4 '4' 4.4 );
+v[g+f]=4+1+'f';
+v[4]=g+g;
+h=aux(h f );
+escreva "teste" ;
+ {
+f=v[1];
+ }
+enquanto (h<4.4|h>5.4);
+entaum  {
+f=v[1];
+ }
+ se (h>5.4);
+entaum  {
+f=v[1];
+ }
+ senaum g>f se ( {
+f=v[f]+f+main(f g h )+ehogais();
+ }
+);
+escreva main(f g h ) "oi" f g+g+f h ;
+g=entrada ;
  }

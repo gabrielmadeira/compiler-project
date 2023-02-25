@@ -40,6 +40,12 @@ int main(int argc, char **argv) {
 	printf("\nDecompiling...\n");
 	astDecompile(mainNode);
 
+	printf("\nAST Content:\n");
+	astPrint(mainNode,0);
+
+	printf("\nHash Content:\n");
+	hashPrint();
+
 	printf("\nPerforming Semantic Verification...\n");
 	semanticVerification(mainNode);
 
@@ -48,12 +54,6 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "%d Semantic errors detected, exiting...\n", semanticErrors);
 		exit(4);	
 	}
-
-	printf("\nAST Content:\n");
-	astPrint(mainNode,0);
-
-	printf("\nHash Content:\n");
-	hashPrint();
 
 	printf("\nFile had %d lines\n", getLineNumber());
 	printf("\nSuccess!\n\n");

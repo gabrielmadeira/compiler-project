@@ -17,18 +17,19 @@
 #define SYMBOL_FUNCTION 7
 #define SYMBOL_VECTOR 8
 
-#define DATAYPE_INTE 1
-#define DATAYPE_CARA 2
-#define DATAYPE_REAL 3
+#define DATATYPE_INTE 1
+#define DATATYPE_CARA 2
+#define DATATYPE_REAL 3
+#define DATATYPE_BOOL 4
 
-typedef struct ast_node AST;
+//typedef struct ast_node AST;
 
 typedef struct hash_node
 {
 	int type;
 	int datatype;
 	char *text;
-	AST *dec;
+//	AST *dec;
 	struct hash_node *next;
 } HASH;
 

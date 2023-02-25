@@ -44,6 +44,14 @@ HASH *hashInsert(int type, char *text) {
 	strcpy(node->text,text);
 	node->next = Table[address];
 	Table[address] = node;
+
+	if(node->type == SYMBOL_LIT_INTE)
+		node->datatype = DATATYPE_INTE;
+	else if(node->type == SYMBOL_LIT_CARA)
+		node->datatype = DATATYPE_CARA;
+	else if(node->type == SYMBOL_LIT_REAL)
+		node->datatype = DATATYPE_REAL;
+
 	return node;
 }
 

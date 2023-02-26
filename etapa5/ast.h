@@ -47,6 +47,7 @@
 #define AST_INTE 37
 #define AST_CARA 38
 #define AST_REAL 39
+#define AST_VARCALL 40
 
 #define MAX_SONS 4
 
@@ -54,6 +55,7 @@ typedef struct ast_node
 {
     int type;
     HASH * symbol; // ponteiro para hash
+    int datatype;
     struct ast_node* son[MAX_SONS];
 } AST;
 

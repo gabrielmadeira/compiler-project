@@ -44,6 +44,14 @@ HASH *hashInsert(int type, char *text) {
 	strcpy(node->text,text);
 	node->next = Table[address];
 	Table[address] = node;
+
+	if(node->type == SYMBOL_LIT_INTE)
+		node->datatype = DATATYPE_INTE;
+	else if(node->type == SYMBOL_LIT_CARA)
+		node->datatype = DATATYPE_CARA;
+	else if(node->type == SYMBOL_LIT_REAL)
+		node->datatype = DATATYPE_REAL;
+
 	return node;
 }
 
@@ -51,5 +59,32 @@ void hashPrint(void) {
 	HASH * node;
 	for (int i=0; i<HASH_SIZE; i++)
 		for(node=Table[i]; node; node = node->next)
-			printf("Table[%d] has %s\n", i, node->text);
+			printf("Table[%d] has %s, with datatype %d\n", i, node->text, node->datatype);
 } 
+
+int hashCheckUndeclared(void) {
+	int undeclared = 0;
+	HASH * node;
+	for (int i=0; i<HASH_SIZE; i++)
+		for(node=Table[i]; node; node = node->next){
+			if(node->type == SYMBOL_LIT_IDENTIFIER){
+				printf("Semantic Error: symbol %s undeclared.\n", node->text);
+				undeclared++;
+			}
+		}
+	return undeclared;
+}
+
+HASH *makeTemp(void) {
+	static int serial = 0;
+	char buffer[256] = "";
+	sprintf(buffer, "_temp%d",serial++);
+	return hashInsert(SYMBOL_VAR, buffer);
+}
+
+HASH *makeLabel(void) {
+	static int serial = 0;
+	char buffer[256] = "";
+	sprintf(buffer, "_label%d",serial++);
+	return hashInsert(SYMBOL_LABEL, buffer);
+}

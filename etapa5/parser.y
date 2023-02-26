@@ -5,6 +5,8 @@
 %{
     #include "hash.h"
     #include "ast.h"
+    #include "semantic.h"
+    #include "tacs.h"
 
     AST *mainNode;
 
@@ -88,7 +90,7 @@ cmd:    TK_IDENTIFIER '=' expr { $$ = astCreate(AST_ASS, $1,$3,0,0,0); }
         | TK_IDENTIFIER '[' expr ']' '=' expr { $$ = astCreate(AST_ARAS, $1,$3,$6,0,0); }
 
         | KW_ENTAUM cmd KW_SE '(' expr ')' { $$ = astCreate(AST_ENTSE, 0,$2,$5,0,0); }
-        | KW_ENTAUM cmd KW_SENAUM cmd KW_SE '(' expr ')' { $$ = astCreate(AST_ENTSNSE, 0,$2,$4,$7,0); }
+        | KW_ENTAUM cmd KW_SENAUM cmd KW_SE '(' expr ')' { $$ = astCreate(AST_ENTSNSE, 0,$2,$7,$4,0); }
         | cmd KW_ENQUANTO '(' expr ')' { $$ = astCreate(AST_ENQ, 0,$1,$4,0,0); }
 
         | KW_ESCREVA lstEscr { $$ = astCreate(AST_ESCR, 0,$2,0,0,0); }

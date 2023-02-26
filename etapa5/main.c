@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "hash.h"
 #include "ast.h"
+#include "semantic.h"
+#include "tacs.h"
 
 extern FILE *yyin;
 FILE *outputFile;
@@ -44,6 +46,18 @@ int main(int argc, char **argv) {
 
 	printf("\nHash Content:\n");
 	hashPrint();
+
+	printf("\nPerforming Semantic Verification...\n");
+	semanticVerification(mainNode);
+
+	int semanticErrors = getSemanticErrors();
+	if(semanticErrors > 0) {
+		fprintf(stderr, "%d Semantic errors detected, exiting...\n", semanticErrors);
+		exit(4);	
+	}
+
+	printf("\nGenerating Code...\n");
+	tacPrintBackwards(generateCode(mainNode));
 
 	printf("\nFile had %d lines\n", getLineNumber());
 	printf("\nSuccess!\n\n");

@@ -60,8 +60,6 @@ void setDeclarations(AST *node) {
                 SemanticErrors++;
             }
             node->symbol->type = SYMBOL_VAR;
-            //node->symbol->dec = node;
-            //if(node->son[0])
             node->symbol->datatype = convertToDatatype(node->son[0]->type);
 
             if(!datatypeCompatible(node->symbol->datatype, node->son[1]->symbol->datatype)){
@@ -76,7 +74,6 @@ void setDeclarations(AST *node) {
                 SemanticErrors++;
             }
             node->symbol->type = SYMBOL_VECTOR;
-            //node->symbol->dec = node;
             if(node->son[0])
                 node->symbol->datatype = convertToDatatype(node->son[0]->type);
 
@@ -99,9 +96,7 @@ void setDeclarations(AST *node) {
                 node->symbol->text);
                 SemanticErrors++;
             }
-            //fprintf(stderr, "FUNCTION %s DEFINED\n",node->symbol->text);
             node->symbol->type = SYMBOL_FUNCTION;
-            //node->symbol->dec = node;
             if(node->son[0])
                 node->symbol->datatype = convertToDatatype(node->son[0]->type);
             break;
@@ -111,8 +106,7 @@ void setDeclarations(AST *node) {
                 node->symbol->text);
                 SemanticErrors++;
             }
-            node->symbol->type = SYMBOL_VAR; // AST_FPL??
-            //node->symbol->dec = node;
+            node->symbol->type = SYMBOL_VAR;
             if(node->son[0])
                 node->symbol->datatype = convertToDatatype(node->son[0]->type);
         default: 
@@ -132,20 +126,21 @@ int getSemanticErrors(void) {
     return SemanticErrors;
 }
 
-int isAritmeticOp(int nodetype) {
-    return (nodetype == AST_ADD || nodetype == AST_SUB || nodetype == AST_MUL || nodetype == AST_DIV);
+int arithmetic(int type) {
+    return type == AST_ADD || type == AST_SUB || type == AST_MUL || type == AST_DIV;
 }
 
-int getDatatype(int type1, int type2) {
-    return (type1 > type2) ? type1 : type2;
+int calcDatatype(int type1, int type2) {
+    if(type1 > type2) return type1;
+    return type2;
 }
 
-int isRelationalOp(int nodetype) {
-    return (nodetype == AST_LES || nodetype == AST_GRE || nodetype == AST_EQ || nodetype == AST_LE || nodetype == AST_GE || nodetype == AST_DIF);
+int relational(int type) {
+    return type == AST_LES || type == AST_GRE || type == AST_EQ || type == AST_LE || type == AST_GE || type == AST_DIF;
 }
 
-int isLogicalOp(int nodetype) {
-    return (nodetype == AST_AND || nodetype == AST_OR || nodetype == AST_NOT);
+int logical(int type) {
+    return type == AST_AND || type == AST_OR || type == AST_NOT;
 }
 
 void checkOperands(AST* node) {
@@ -167,7 +162,7 @@ void checkOperands(AST* node) {
         node->datatype = node->symbol->datatype;
     } else if(node->type == AST_PAR) {
         node->datatype = node->son[0]->datatype;
-    } else if(isAritmeticOp(node->type)) {
+    } else if(arithmetic(node->type)) {
         AST* son0 = node->son[0];
         AST* son1 = node->son[1];
         
@@ -176,9 +171,9 @@ void checkOperands(AST* node) {
             SemanticErrors++;
         }
     
-        node->datatype = getDatatype(son0->datatype, son1->datatype);
+        node->datatype = calcDatatype(son0->datatype, son1->datatype);
     
-    } else if(isRelationalOp(node->type)) {
+    } else if(relational(node->type)) {
 
         AST* son0 = node->son[0];
         AST* son1 = node->son[1];
@@ -190,7 +185,7 @@ void checkOperands(AST* node) {
 
         node->datatype = DATATYPE_BOOL;
 
-    } else if(isLogicalOp(node->type)) {
+    } else if(logical(node->type)) {
 
         if (node->type == AST_NOT) {
             if(node->son[0]->datatype != DATATYPE_BOOL) {
@@ -210,7 +205,8 @@ void checkOperands(AST* node) {
 }
 
 AST* findDeclaration(char * name, AST * node) {
-	if(node->symbol != NULL && strcmp(node->symbol->text, name) == 0) return node;
+	if(node->symbol != NULL && !strcmp(node->symbol->text, name)) 
+        return node;
 
 	for(int i = 0; i < MAX_SONS; i++) {
         if(node->son[i] == 0) continue;
@@ -222,18 +218,22 @@ AST* findDeclaration(char * name, AST * node) {
 	return NULL;
 }
 
-int getNumberOfArguments(AST *node) {
-	if(node == 0) return 0;
+int calcNumberOfArguments(AST *node) {
+	if(node == 0) 
+        return 0;
 
-	return (node->son[1] != 0) ? 1 + getNumberOfArguments(node->son[1]) : 0;
+    if(node->son[1] != 0)
+        return calcNumberOfArguments(node->son[1]) + 1;
+
+	return 0;
 }
 
-int validateNumberOfArguments(AST *node, AST *declaration) {
-	int numberOfCalledArguments = getNumberOfArguments(node->son[0]);
-	int numberOfDeclaredArguments = getNumberOfArguments(declaration->son[1]);	
+int compareNumberOfArguments(AST *node, AST *declaration) {
+	int numberOfCalledArguments = calcNumberOfArguments(node->son[0]);
+	int numberOfDeclaredArguments = calcNumberOfArguments(declaration->son[1]);	
 
 	if(numberOfCalledArguments != numberOfDeclaredArguments) {
-	    fprintf(stderr, "Semantic error (line %d): Incompatible number of arguments.\n", node->lineNumber);
+	    fprintf(stderr, "Semantic Error: incompatible number of arguments.\n");
 		SemanticErrors++;
 		return 0;
 	}
@@ -244,16 +244,16 @@ int validateNumberOfArguments(AST *node, AST *declaration) {
 void compareCalledArguments(AST *node, AST *declaration) {
 	if(node->son[0] != 0) {
 		if(!datatypeCompatible(node->son[0]->datatype, declaration->symbol->datatype)) {
-			fprintf(stderr, "Semantic Error (line %d): Incompatible argument types\n", node->lineNumber);
+			fprintf(stderr, "Semantic Error: incompatible argument types.\n");
 			SemanticErrors++;
 		}
 		
         if(node->son[0]->type == AST_SYMBOL) {
             if(node->son[0]->symbol->type == SYMBOL_FUNCTION) {
-				fprintf(stderr, "Semantic Error (line %d): Cannot pass function as argument\n", node->lineNumber);
+				fprintf(stderr, "Semantic Error: cannot pass function as argument.\n");
 				SemanticErrors++;
             } else if(node->son[0]->symbol->type == SYMBOL_VECTOR) {
-		        fprintf(stderr, "Semantic Error (line %d): Cannot pass vector as argument\n", node->lineNumber);
+		        fprintf(stderr, "Semantic Error: cannot pass vector as argument.\n");
 			    SemanticErrors++;
             }
         }
@@ -262,91 +262,63 @@ void compareCalledArguments(AST *node, AST *declaration) {
 	}
 }
 
-void validateFunction(AST *node) {
-	AST* declaration = findDeclaration(node->symbol->text, Root);
-    	
-	if(declaration == 0 || declaration->type != AST_LDCF) {
-        fprintf(stderr, "Semantic Error (line %d): only functions can be called, %s is not a function.\n", node->lineNumber, node->symbol->text);
-        SemanticErrors++;
-	} 
-    else if(validateNumberOfArguments(node, declaration)) {
-        if(declaration->son[1]) compareCalledArguments(node->son[0], declaration->son[1]);					
-	}
-}
-
 void checkWrite(AST *node) {
     if (node == 0) return;
-
-    // if(node->son[0]->type == AST_SYMBOL) { 
-    //     if(node->son[0]->symbol->type == SYMBOL_FUNCTION) {
-    //         fprintf(stderr, "Semantic Error (line %d): Cannot print function\n", node->lineNumber);
-    //         SemanticErrors++;
-    //     } else if(node->son[0]->symbol->type == SYMBOL_VECTOR) {
-    //         fprintf(stderr, "Semantic Error (line %d): Cannot print vector\n", node->lineNumber);
-    //         SemanticErrors++;
-    //     }
-    // }
-
     checkWrite(node->son[1]);
 }
 
-void checkCorrectUse(AST* node) { //check nature - garantir que var,vetor,funcao seja usadada como var,vetor,funcao
+void checkCorrectUse(AST* node) { 
     if(!node) return;
 
+    AST* declaration;
+
     switch(node->type){
-        case AST_ASS: // PRECISA?
+        case AST_ASS: 
             if(node->symbol->type != SYMBOL_VAR) {
-                fprintf(stderr, "Semantic Error (line %d): attribution must be to a scalar variable.\n", node->lineNumber);
+                fprintf(stderr, "Semantic Error: attribution must be to a scalar variable.\n");
 		        SemanticErrors++;
             }
 
 			if(!datatypeCompatible(node->symbol->datatype, node->son[0]->datatype)) {
-				fprintf(stderr, "Semantic Error (line %d): attribution with incompatible data type.\n", node->lineNumber);
+				fprintf(stderr, "Semantic Error: attribution with incompatible data type.\n");
 				SemanticErrors++;
 			}
             break;
         case AST_ARAS:
             if(node->symbol->type != SYMBOL_VECTOR) {
-           	    fprintf(stderr, "Semantic Error (line %d): indexing only allowed for vectors.\n", node->lineNumber);
+           	    fprintf(stderr, "Semantic Error: indexing only allowed for vectors.\n");
 	           	SemanticErrors++;
             }
 
             if(!datatypeCompatible(node->symbol->datatype, node->son[1]->datatype)) {
-		        fprintf(stderr, "Semantic Error (line %d): attribution with incompatible data type.\n", node->lineNumber);
+		        fprintf(stderr, "Semantic Error: attribution with incompatible data type.\n");
                 SemanticErrors++;
 			}
 
 	        if(!integerOrChar(node->son[0]->datatype)) {
-		        fprintf(stderr, "Semantic Error (line %d): index must be an integer.\n", node->lineNumber);
+		        fprintf(stderr, "Semantic Error: index must be an integer.\n");
                 SemanticErrors++;
             }
             break;
-        //case AST_VARCALL: 
-            // if((node->son[0] || (node->symbol->type != SYMBOL_VAR)) && node->symbol->type != SYMBOL_LIT_IDENTIFIER) {
-            //     fprintf(stderr, "Semantic Error: incorrect use, %s is not a variable.\n", node->symbol->text);
-            //     SemanticErrors++;
-            // }
-        //    break;
         case AST_FCALL:
-            // if(node->symbol->type != SYMBOL_FUNCTION && node->symbol->type != SYMBOL_LIT_IDENTIFIER) {
-            //     fprintf(stderr, "Semantic Error: incorrect use, %s is not a function.\n", node->symbol->text);
-            //     SemanticErrors++;
-            // }
-            validateFunction(node);
+            declaration = findDeclaration(node->symbol->text, Root);
+    	
+            if(declaration == 0 || declaration->type != AST_LDCF) {
+                fprintf(stderr, "Semantic Error: only functions can be called, %s is not a function.\n", node->symbol->text);
+                SemanticErrors++;
+            } else if(compareNumberOfArguments(node, declaration)) {
+                if(declaration->son[1]) 
+                    compareCalledArguments(node->son[0], declaration->son[1]);					
+            }
             break;
         case AST_ACALL: 
-            // if((!node->son[0] || node->symbol->type != SYMBOL_VECTOR) && node->symbol->type != SYMBOL_LIT_IDENTIFIER) {
-            //     fprintf(stderr, "Semantic Error: incorrect use, this element is not a vector.\n");
-            //     SemanticErrors++;
-            // }
-            
-            AST* declaration = findDeclaration(node->symbol->text, Root);
+            declaration = findDeclaration(node->symbol->text, Root);
             if(declaration == 0 || declaration->type != AST_GARR) {
-                fprintf(stderr, "Semantic Error (line %d): %s is not a vector.\n", node->lineNumber, node->symbol->text);
+                fprintf(stderr, "Semantic Error: %s is not a vector.\n", node->symbol->text);
             }
 
             if(node->son[0]->datatype != DATATYPE_CARA && node->son[0]->datatype != DATATYPE_INTE) {
-            	fprintf(stderr, "Semantic Error (line %d): wrong type of expression or index\n", node->lineNumber);
+            	fprintf(stderr, "Semantic Error: wrong type of expression or index\n");
             	SemanticErrors++;
 			} 
             break;
@@ -357,7 +329,7 @@ void checkCorrectUse(AST* node) { //check nature - garantir que var,vetor,funcao
         case AST_ENTSNSE:
         case AST_ENQ:
             if(node->son[1]->datatype != DATATYPE_BOOL) {
-		        fprintf(stderr, "Semantic Error (line %d): condition must be a boolean expression.\n", node->lineNumber);
+		        fprintf(stderr, "Semantic Error: condition must be a boolean expression.\n");
 				SemanticErrors++;
             }
             break;
@@ -370,22 +342,22 @@ void checkCorrectUse(AST* node) { //check nature - garantir que var,vetor,funcao
     }
 }
 
-void isReturnCompatible(AST *node, int datatype) {
+void checkCompatibleReturn(AST *node, int datatype) {
 	if(node == 0) return;
 	
 	if(node->type == AST_RET) {
 		if(!datatypeCompatible(node->son[0]->datatype, datatype)) {
-			printf("Semantic Error (line %d): return statement with wrong datatype.\n", node->lineNumber);
+			printf("Semantic Error: return statement with wrong datatype.\n");
 			SemanticErrors++;
 		}
 	}
 
-	for(int i = 0; i < MAX_SONS; i++) isReturnCompatible(node->son[i], datatype);
+	for(int i = 0; i < MAX_SONS; i++) checkCompatibleReturn(node->son[i], datatype);
 	
 }
 
 void checkReturn(AST* node) {
-    if(node != 0 && node->type == AST_LDCF) isReturnCompatible(node, node->symbol->datatype);
+    if(node != 0 && node->type == AST_LDCF) checkCompatibleReturn(node, node->symbol->datatype);
 
 	for(int i = 0; i < MAX_SONS; i++) {
 		if(node->son[i] == 0) break;

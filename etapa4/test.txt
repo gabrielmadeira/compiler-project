@@ -1,13 +1,7 @@
-// OK • variáveis redeclaradas
 inte a = 1;
 inte v[4] 2 2 2 '4';
 real z[4] 2.2 2.2 2.2 4.2;
-//inte a = 0;
 
-// OK • anotar tipo (natureza) (escalares, vetores, funções) nas tabela hash 
-
-// OK • anotar tipo de dado (dataType) (cara, inte, real) na tabela hash
-// OK • variáveis não-declaradas
 real aux(real d, inte e) {
     //retorne 4;
 }
@@ -41,20 +35,5 @@ inte main(inte f, cara g, real h) {
     escreva main(f,g,h) "oi" f g+g+f h;
 
     g = entrada;
-
-
-// • verificar natureza, se:
-//     - escalares são usados como escalares
-//     - vetores são usados como vetores
-//     - funções são usadas como funções
-//     - não esqueça de verificar no lado direito (expressões) e no lado esquerdo (atribuições)
-// • verificar tipos de dados nas expressões
-// • verificar argumentos de chamada de função versus parâmetros:
-//     - não pode haver menos argumentos
-//     - não pode haver mais argumentos
-//     - os tipos devem ser compatíveis (não iguais, lembre-se)
-// • verificar o tamanho e a lista de inicialização do vetor;
-// • verificar tipo do valor de retorno da função
-// • verificar índices dos vetores (não pode ser booleano, não pode ser real), tanto na expressão quanto na atribuição
 
 }

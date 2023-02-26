@@ -22,14 +22,11 @@
 #define DATATYPE_REAL 3
 #define DATATYPE_BOOL 4
 
-//typedef struct ast_node AST;
-
 typedef struct hash_node
 {
 	int type;
 	int datatype;
 	char *text;
-//	AST *dec;
 	struct hash_node *next;
 } HASH;
 

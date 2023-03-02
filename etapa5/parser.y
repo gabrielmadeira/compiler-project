@@ -78,7 +78,7 @@ program: lDecl { $$ = $1; mainNode = $$; }
         ;
 
 lDecl: gvar ';' lDecl { $$ = astCreate(AST_LDCG, 0,$1,$3,0,0); } 
-        | type TK_IDENTIFIER '(' fParamList ')' block lDecl { $$ = astCreate(AST_LDCF, $2,$1,$4,$6,$7); } 
+        | type TK_IDENTIFIER '(' fParamList ')' block lDecl { $$ = astCreate(AST_LDCF, $2,$1,$4,$6,$7); } // TODO? problema $7
         | { $$ = 0; }
         ;
 

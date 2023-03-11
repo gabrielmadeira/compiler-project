@@ -1,0 +1,7 @@
+real r = 1.1;
+inte vec[4] 4 3 2 1;
+inte main(inte i, real g) {
+    vec[2] = main(i+1, r+2.2);
+    //i = entrada;
+    //escreva "oi" g 4+2;
+}   

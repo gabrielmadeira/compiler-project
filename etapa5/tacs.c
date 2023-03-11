@@ -1,4 +1,6 @@
-// tacs.h
+/*
+	Gabriel Madeira (00322863)
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,9 +25,34 @@ void tacPrintSingle(TAC *tac){
         case TAC_SYMBOL: fprintf(stderr,"TAC_SYMBOL"); break;
         case TAC_ADD: fprintf(stderr,"TAC_ADD"); break;
         case TAC_SUB: fprintf(stderr,"TAC_SUB"); break;
-        case TAC_COPY: fprintf(stderr,"TAC_COPY"); break;
-        case TAC_JFALSE: fprintf(stderr,"TAC_JFALSE"); break;
-        case TAC_JLABEL: fprintf(stderr,"TAC_JLABEL"); break;
+        case TAC_MUL: fprintf(stderr,"TAC_MUL"); break;
+        case TAC_DIV: fprintf(stderr,"TAC_DIV"); break;
+        case TAC_LES: fprintf(stderr,"TAC_LES"); break;
+        case TAC_GRE: fprintf(stderr,"TAC_GRE"); break;
+        case TAC_AND: fprintf(stderr,"TAC_AND"); break;
+        case TAC_OR: fprintf(stderr,"TAC_OR"); break;
+        case TAC_NOT: fprintf(stderr,"TAC_NOT"); break;
+        case TAC_LE: fprintf(stderr,"TAC_LE"); break;
+        case TAC_GE: fprintf(stderr,"TAC_GE"); break;
+        case TAC_EQ: fprintf(stderr,"TAC_EQ"); break;
+        case TAC_DIF: fprintf(stderr,"TAC_DIF"); break;
+        case TAC_MOVE: fprintf(stderr,"TAC_MOVE"); break;
+        case TAC_MOVEVEC: fprintf(stderr,"TAC_MOVEVEC"); break;
+        case TAC_VEC: fprintf(stderr,"TAC_VEC"); break;
+        case TAC_LEXP: fprintf(stderr,"TAC_LEXP"); break;
+        case TAC_ACALL: fprintf(stderr,"TAC_ACALL"); break;
+        case TAC_LABEL: fprintf(stderr,"TAC_LABEL"); break;
+        case TAC_BEGINFUN: fprintf(stderr,"TAC_BEGINFUN"); break;
+        case TAC_ENDFUN: fprintf(stderr,"TAC_ENDFUN"); break;
+        case TAC_IFZ: fprintf(stderr,"TAC_IFZ"); break;
+        case TAC_JUMP: fprintf(stderr,"TAC_JUMP"); break;
+        case TAC_CALL: fprintf(stderr,"TAC_CALL"); break;
+        case TAC_ARG: fprintf(stderr,"TAC_ARG"); break;
+        case TAC_RET: fprintf(stderr,"TAC_RET"); break;
+        case TAC_PRINT: fprintf(stderr,"TAC_PRINT"); break;
+        case TAC_PRINTL: fprintf(stderr,"TAC_PRINTL"); break;
+        case TAC_READ: fprintf(stderr,"TAC_READ"); break;
+        case TAC_PARAM: fprintf(stderr,"TAC_PARAM"); break;
         default: fprintf(stderr,"TAC_UNKNOW"); break;
     }
     if(tac->res) fprintf(stderr,",%s", tac->res->text); else fprintf(stderr,",0");
@@ -59,9 +86,7 @@ TAC *makeIfThen(TAC *expr, TAC *cmdIf, TAC *cmdElse) { //TODO
     HASH *ifLabel = makeLabel();
 
     TAC *ifTac = tacCreate(TAC_IFZ,ifLabel,expr?expr->res:0,0);
-    ifTac->prev = expr;
     TAC *labelTac = tacCreate(TAC_LABEL,ifLabel,0,0);
-    labelTac->prev = cmd;
 
     if(cmdElse) {
         HASH *elseLabel = makeLabel();
@@ -69,7 +94,7 @@ TAC *makeIfThen(TAC *expr, TAC *cmdIf, TAC *cmdElse) { //TODO
         TAC *elseJumpTac = tacCreate(TAC_JUMP, elseLabel, 0, 0);
         return tacJoin(tacJoin(tacJoin(tacJoin(tacJoin(ifTac, cmdIf), elseJumpTac), labelTac), cmdElse), elseLabelTac);
     }else{
-        return tacJoin(ifTac,labelTac);
+        return tacJoin(tacJoin(ifTac, cmdIf),labelTac);
     }
 }
 
@@ -120,38 +145,31 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_LE: result = makeBinaryOp(TAC_LE, code); break;
         case AST_GE: result = makeBinaryOp(TAC_GE, code); break;
         case AST_EQ: result = makeBinaryOp(TAC_EQ, code); break;
-        case AST_DIF: result = makeBinaryOp(TAC_DIF, code); break; // TODO
+        case AST_DIF: result = tacJoin(code[0], tacCreate(TAC_DIF,makeTemp(),code[0]?code[0]->res:0,0)); break;
 
         case AST_ASS: result = tacJoin(code[0], tacCreate(TAC_MOVE,node->symbol,code[0]?code[0]->res:0,0)); break;
         case AST_ARAS: result = tacJoin(code[0], tacJoin(code[1], tacCreate(TAC_MOVEVEC, node->symbol, code[0]?code[0]->res:0, code[1]?code[1]->res:0))); break; 
         case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, node->symbol, code[0]?code[0]->res:0, 0)); break;
         case AST_RET: result = tacJoin(code[0], tacCreate(TAC_RET, code[0]?code[0]->res:0, 0, 0)); break;
-        case AST_ESCR: break; // TODO string/expr
-        case AST_ENTRADA: result = tacCreate(TAC_READ, node->symbol, 0, 0); break;
+        case AST_ESCR: result = tacJoin(code[0], tacCreate(TAC_PRINT, 0, 0, 0)); break; // TODO string/expr
+        case AST_LEEXP: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_PRINTL, code[0]->res, 0, 0))); break;
+        case AST_LESTR: result = tacJoin(code[0], tacCreate(TAC_PRINTL, node->symbol, 0, 0)); break;
+        case AST_ENTRADA: result = tacCreate(TAC_READ, makeTemp(), 0, 0); break;
 
-        case AST_GVAR: break;
-        case AST_GARR: result = tacJoin(code[0], tacCreate(TAC_VEC, makeTemp(), node->symbol, code[0]?code[0]->res:0)); break;
-        case AST_LEXP: break; // expressão inicialização vetor
+        case AST_GVAR: result = tacJoin(code[1], tacCreate(TAC_MOVE,node->symbol,code[1]?code[1]->res:0,0)); break;
+        case AST_GARR: result = tacJoin(tacJoin(code[1],code[2]), tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0)); break;
+        case AST_LEXP: result = tacJoin(code[1], tacCreate(TAC_LEXP, code[0]->res, 0, 0)); break; // expressão inicialização vetor
         case AST_LDCF: result = makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]); break;
-        case AST_FPL: break;
-        case AST_FCALL: break;
-        case AST_FCPL: break;
+        case AST_FPL: result = tacJoin(tacCreate(TAC_PARAM, node->symbol, 0, 0), code[1]); break; 
+        case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
+        case AST_FCPL: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0))); break; 
         
-        case AST_ENTSE: result = makeIf(code[1], code[0], 0); break;
-        case AST_ENTNSE: result = makeIf(code[1], code[0], code[2]); break;
+        case AST_ENTSE: result = makeIfThen(code[1], code[0], 0); break;
+        case AST_ENTSNSE: result = makeIfThen(code[1], code[0], code[2]); break;
         case AST_ENQ: result = makeWhile(code[1], code[0], currentLoopLabel); break;
 
         default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3]))); break; // return the union of code for all subtrees
     }
 
     return result;
-}
-
-TAC *reverseTAC(TAC *pIn) { // precisa????
-	tac* pOut;
-	for(pOut = pIn; pOut->prev; pOut = pOut->prev) {
-        pOut->prev->next = pOut;
-    }
-
-	return pOut;
 }

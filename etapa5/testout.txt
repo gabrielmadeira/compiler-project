@@ -1,3 +1,5 @@
-inte main (inte i )  {
-i=i+1+2;
+real r=1.1;
+inte vec[4] 4 3 2 1 ;
+inte main (inte i real g )  {
+vec[2]=main(i+1 r+2.2 );
  }

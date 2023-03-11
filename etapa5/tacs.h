@@ -1,4 +1,6 @@
-// tacs.h
+/*
+	Gabriel Madeira (00322863)
+*/
 
 #ifndef TACS_HEADER
 #define TACS_HEADER
@@ -23,19 +25,23 @@
 #define TAC_EQ 13
 #define TAC_DIF 14
 
-#define TAC_MOVE
-#define TAC_MOVEVEC
-#define TAC_ACALL
-#define TAC_LABEL
-#define TAC_BEGINFUN
-#define TAC_ENDFUN
-#define TAC_IFZ
-#define TAC_JUMP
-#define TAC_CALL
-#define TAC_ARG
-#define TAC_RET
-#define TAC_PRINT
-#define TAC_READ
+#define TAC_MOVE 15
+#define TAC_MOVEVEC 16
+#define TAC_VEC 17
+#define TAC_LEXP 18
+#define TAC_ACALL 19
+#define TAC_LABEL 20
+#define TAC_BEGINFUN 21
+#define TAC_ENDFUN 22
+#define TAC_IFZ 23
+#define TAC_JUMP 24
+#define TAC_CALL 25
+#define TAC_ARG 26
+#define TAC_RET 27
+#define TAC_PRINT 28
+#define TAC_PRINTL 29
+#define TAC_READ 30
+#define TAC_PARAM 31
 
 typedef struct tac_node
 {
@@ -54,6 +60,6 @@ TAC *tacJoin(TAC* l1, TAC* l2);
 
 // code generation
 
-TAC *generateCode(AST *node);
+TAC *generateCode(AST * node, HASH *currentLoopLabel);
 
 #endif

@@ -57,7 +57,9 @@ int main(int argc, char **argv) {
 	}
 
 	printf("\nGenerating Code...\n");
-	tacPrintBackwards(generateCode(mainNode));
+	TAC *code = generateCode(mainNode, 0);
+	printf("\nPrinting TACs...\n");
+	tacPrintBackwards(code);
 
 	printf("\nFile had %d lines\n", getLineNumber());
 	printf("\nSuccess!\n\n");

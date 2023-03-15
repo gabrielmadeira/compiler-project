@@ -26,22 +26,23 @@
 #define TAC_DIF 14
 
 #define TAC_MOVE 15
-#define TAC_MOVEVEC 16
-#define TAC_VEC 17
-#define TAC_LEXP 18
-#define TAC_ACALL 19
-#define TAC_LABEL 20
-#define TAC_BEGINFUN 21
-#define TAC_ENDFUN 22
-#define TAC_IFZ 23
-#define TAC_JUMP 24
-#define TAC_CALL 25
-#define TAC_ARG 26
-#define TAC_RET 27
-#define TAC_PRINT 28
-#define TAC_PRINTL 29
-#define TAC_READ 30
-#define TAC_PARAM 31
+#define TAC_VAR 16
+#define TAC_MOVEVEC 17
+#define TAC_VEC 18
+#define TAC_LEXP 19
+#define TAC_ACALL 20
+#define TAC_LABEL 21
+#define TAC_BEGINFUN 22
+#define TAC_ENDFUN 23
+#define TAC_IFZ 24
+#define TAC_JUMP 25
+#define TAC_CALL 26
+#define TAC_ARG 27
+#define TAC_RET 28
+#define TAC_PRINT 29
+#define TAC_PRINTL 30
+#define TAC_READ 31
+#define TAC_PARAM 32
 
 typedef struct tac_node
 {

@@ -1,7 +1,11 @@
-real r = 1.1;
-inte vec[4] 4 3 2 1;
+//real r = 1.1;
+//inte vec[4] 4 3 2 1;
+inte x = 4;
 inte main(inte i, real g) {
-    vec[2] = main(i+1, r+2.2);
+    //vec[2] = main(i+1, r+2.2);
     //i = entrada;
     //escreva "oi" g 4+2;
+    //{ escreva x; } enquanto (x<4);
+    entaum { escreva x; } se (x>=4);
+    //entaum { escreva x; } senaum { x=1 } se (x<4);
 }   

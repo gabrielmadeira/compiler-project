@@ -37,6 +37,7 @@ void tacPrintSingle(TAC *tac){
         case TAC_EQ: fprintf(stderr,"TAC_EQ"); break;
         case TAC_DIF: fprintf(stderr,"TAC_DIF"); break;
         case TAC_MOVE: fprintf(stderr,"TAC_MOVE"); break;
+        case TAC_VAR: fprintf(stderr,"TAC_VAR"); break;
         case TAC_MOVEVEC: fprintf(stderr,"TAC_MOVEVEC"); break;
         case TAC_VEC: fprintf(stderr,"TAC_VEC"); break;
         case TAC_LEXP: fprintf(stderr,"TAC_LEXP"); break;
@@ -92,9 +93,9 @@ TAC *makeIfThen(TAC *expr, TAC *cmdIf, TAC *cmdElse) { //TODO
         HASH *elseLabel = makeLabel();
         TAC *elseLabelTac = tacCreate(TAC_LABEL,elseLabel,0,0);
         TAC *elseJumpTac = tacCreate(TAC_JUMP, elseLabel, 0, 0);
-        return tacJoin(tacJoin(tacJoin(tacJoin(tacJoin(ifTac, cmdIf), elseJumpTac), labelTac), cmdElse), elseLabelTac);
+        return tacJoin(tacJoin(tacJoin(tacJoin(tacJoin(tacJoin(expr, ifTac), cmdIf), elseJumpTac), labelTac), cmdElse), elseLabelTac);
     }else{
-        return tacJoin(tacJoin(ifTac, cmdIf),labelTac);
+        return tacJoin(tacJoin(tacJoin(expr, ifTac), cmdIf),labelTac);
     }
 }
 
@@ -156,13 +157,13 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_LESTR: result = tacJoin(code[0], tacCreate(TAC_PRINTL, node->symbol, 0, 0)); break;
         case AST_ENTRADA: result = tacCreate(TAC_READ, makeTemp(), 0, 0); break;
 
-        case AST_GVAR: result = tacJoin(code[1], tacCreate(TAC_MOVE,node->symbol,code[1]?code[1]->res:0,0)); break;
-        case AST_GARR: result = tacJoin(tacJoin(code[1],code[2]), tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0)); break;
-        case AST_LEXP: result = tacJoin(code[1], tacCreate(TAC_LEXP, code[0]->res, 0, 0)); break; // expressão inicialização vetor
+        case AST_GVAR: result = tacJoin(code[1], tacCreate(TAC_VAR,node->symbol,code[1]?code[1]->res:0,0)); break;
+        case AST_GARR: result = tacJoin(tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0), tacJoin(code[1],code[2])); break;
+        case AST_LEXP: result = tacJoin(tacCreate(TAC_LEXP, code[0]->res, 0, 0), code[1]); break; // expressão inicialização vetor
         case AST_LDCF: result = makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]); break;
         case AST_FPL: result = tacJoin(tacCreate(TAC_PARAM, node->symbol, 0, 0), code[1]); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
-        case AST_FCPL: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0))); break; 
+        case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 
         
         case AST_ENTSE: result = makeIfThen(code[1], code[0], 0); break;
         case AST_ENTSNSE: result = makeIfThen(code[1], code[0], code[2]); break;

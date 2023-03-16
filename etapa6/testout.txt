@@ -1,0 +1,9 @@
+inte a=3;
+inte b=4;
+inte x=5;
+inte main ()  {
+entaum  {
+escreva x ;
+ }
+ se (x<4);
+ }

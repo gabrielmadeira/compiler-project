@@ -1,0 +1,12 @@
+inte a = 3;
+inte b = 4;
+inte x = 5;
+inte main() {
+    //a=5;
+    //b=777;
+    //x=a+b+99;
+    //escreva x;
+    //{ escreva x; } enquanto (x<4);
+    entaum { escreva x; } se (x<4);
+    //entaum { escreva x; } senaum { x=1 } se (x<4);
+}   

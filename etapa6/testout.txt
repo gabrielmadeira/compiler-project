@@ -1,9 +1,7 @@
-inte a=3;
-inte b=4;
-inte x=5;
-inte main ()  {
-entaum  {
-escreva x ;
- }
- se (x<4);
+inte b=1;
+inte x[4] 5 6 7 8 ;
+inte main (inte g inte h )  {
+x[3]=33;
+b=x[3]+4;
+escreva b ;
  }

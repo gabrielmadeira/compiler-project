@@ -2,26 +2,18 @@
 	.text
 	.globl	var1
 	.data
-	.align 4
+	.align 8
 	.type	var1, @object
-	.size	var1, 4
+	.size	var1, 8
 var1:
-	.long	5
+	.long	7
+	.long	9
 	.globl	var2
 	.align 4
 	.type	var2, @object
 	.size	var2, 4
 var2:
 	.long	3
-	.globl	var3
-	.align 4
-	.type	var3, @object
-	.size	var3, 4
-var3:
-	.long	2
-	.section	.rodata
-.LC0:
-	.string	"%d"
 	.text
 	.globl	main
 	.type	main, @function
@@ -34,16 +26,8 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	var1(%rip), %eax
-	testl	%eax, %eax
-	je	.L2
-	movl	var1(%rip), %eax
-	movl	%eax, %esi
-	leaq	.LC0(%rip), %rax
-	movq	%rax, %rdi
-	movl	$0, %eax
-	call	printf@PLT
-.L2:
+	movl	4+var1(%rip), %eax
+	movl	%eax, var2(%rip)
 	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8

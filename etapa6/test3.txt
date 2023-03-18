@@ -1,12 +1,17 @@
-inte a = 3;
-inte b = 4;
-inte x = 5;
-inte main() {
-    //a=5;
+//inte a = 3;
+inte b = 1;
+inte x[4] 5 6 7 8;
+inte main(inte g, inte h) {
+    x[3] = 33;
+    b = x[3] + 4;
+    //x=entrada;
     //b=777;
     //x=a+b+99;
-    //escreva x;
-    //{ escreva x; } enquanto (x<4);
-    entaum { escreva x; } se (x<4);
-    //entaum { escreva x; } senaum { x=1 } se (x<4);
+    //escreva a;
+    //{ escreva a; } enquanto (x<4);
+    //entaum { escreva 888; } se (~(a==0) & (b==0));
+    //entaum { escreva 888; } senaum { escreva 777; } se (x<4);
+    //x = main(x, b);
+    //retorne x;
+    escreva b;
 }   

@@ -150,7 +150,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
 
         case AST_ASS: result = tacJoin(code[0], tacCreate(TAC_MOVE,node->symbol,code[0]?code[0]->res:0,0)); break;
         case AST_ARAS: result = tacJoin(code[0], tacJoin(code[1], tacCreate(TAC_MOVEVEC, node->symbol, code[0]?code[0]->res:0, code[1]?code[1]->res:0))); break; 
-        case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, node->symbol, code[0]?code[0]->res:0, 0)); break;
+        case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, makeTemp(), node->symbol, code[0]?code[0]->res:0)); break;
         case AST_RET: result = tacJoin(code[0], tacCreate(TAC_RET, code[0]?code[0]->res:0, 0, 0)); break;
         case AST_ESCR: result = tacJoin(code[0], tacCreate(TAC_PRINT, 0, 0, 0)); break; // TODO string/expr
         case AST_LEEXP: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_PRINTL, code[0]->res, 0, 0))); break;

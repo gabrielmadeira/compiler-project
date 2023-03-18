@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tacs.h"
+#include "semantic.h"
 
 TAC * tacCreate(int type, HASH *res, HASH *op1, HASH *op2) {
     TAC* newtac = 0;
@@ -150,7 +151,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
 
         case AST_ASS: result = tacJoin(code[0], tacCreate(TAC_MOVE,node->symbol,code[0]?code[0]->res:0,0)); break;
         case AST_ARAS: result = tacJoin(code[0], tacJoin(code[1], tacCreate(TAC_MOVEVEC, node->symbol, code[0]?code[0]->res:0, code[1]?code[1]->res:0))); break; 
-        case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, node->symbol, code[0]?code[0]->res:0, 0)); break;
+        case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, makeTemp(), node->symbol, code[0]?code[0]->res:0)); break;
         case AST_RET: result = tacJoin(code[0], tacCreate(TAC_RET, code[0]?code[0]->res:0, 0, 0)); break;
         case AST_ESCR: result = tacJoin(code[0], tacCreate(TAC_PRINT, 0, 0, 0)); break; // TODO string/expr
         case AST_LEEXP: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_PRINTL, code[0]->res, 0, 0))); break;
@@ -161,7 +162,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_GARR: result = tacJoin(tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0), tacJoin(code[1],code[2])); break;
         case AST_LEXP: result = tacJoin(tacCreate(TAC_LEXP, code[0]->res, 0, 0), code[1]); break; // expressão inicialização vetor
         case AST_LDCF: result = makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]); break;
-        case AST_FPL: result = tacJoin(tacCreate(TAC_PARAM, node->symbol, 0, 0), code[1]); break; 
+        case AST_FPL: result = tacJoin(code[1], tacCreate(TAC_PARAM, node->symbol, 0, 0)); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
         case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 
         
@@ -189,6 +190,7 @@ void generateAsm(TAC *first, AST *mainNode) {
 
     // Init
     fprintf(fout,"## FIXED INIT\n"
+                ".scanIntStr: .string	\"%%d\"\n"
                 ".printIntStr: .string	\"%%d\\n\"\n"
                 ".printStringStr: .string \"%%s\\n\"\n");
 
@@ -211,7 +213,7 @@ void generateAsm(TAC *first, AST *mainNode) {
                                 "\tret\n");
                 break;
 
-            case TAC_PRINTL: 
+            case TAC_PRINTL: // TODO: fazer para printstring
                 fprintf(fout,"## TAC_PRINTINT\n"
                                 "\tmovl _%s(%%rip), %%esi\n"
                                 "\tleaq .printIntStr(%%rip), %%rax\n"
@@ -253,33 +255,154 @@ void generateAsm(TAC *first, AST *mainNode) {
                                 , tac->op1->text, tac->op2->text, tac->res->text); 
                 
                 break;
-            case TAC_LES: fprintf(fout,"TAC_LES"); break;
-            case TAC_GRE: fprintf(fout,"TAC_GRE"); break;
-            case TAC_AND: fprintf(fout,"TAC_AND"); break;
-            case TAC_OR: fprintf(fout,"TAC_OR"); break;
-            case TAC_NOT: fprintf(fout,"TAC_NOT"); break;
-            case TAC_LE: fprintf(fout,"TAC_LE"); break;
-            case TAC_GE: fprintf(fout,"TAC_GE"); break;
-            case TAC_EQ: fprintf(fout,"TAC_EQ"); break;
-            case TAC_DIF: fprintf(fout,"TAC_DIF"); break;
+            case TAC_LES: fprintf(fout,"## TAC_LES\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsetl %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
+            case TAC_GRE: fprintf(fout,"## TAC_GRE\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsetg %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
+            case TAC_AND: fprintf(fout,"## TAC_AND\n" 
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tandl %%edx, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                    , tac->op1->text, tac->op2->text, tac->res->text);
+                
+                break;
+            case TAC_OR: fprintf(fout,"## TAC_OR\n" 
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\torl %%edx, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                    , tac->op1->text, tac->op2->text, tac->res->text);
+                
+                break;
+            case TAC_NOT: fprintf(fout,"## TAC_NOT\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\ttestl %%eax, %%eax\n"
+                                            "\tsete %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                        , tac->op1->text, tac->res->text); 
+                break;
+            case TAC_LE: fprintf(fout,"## TAC_LE\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsetle %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
+            case TAC_GE: fprintf(fout,"## TAC_GE\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsetge %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
+            case TAC_EQ: fprintf(fout,"## TAC_EQ\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsete %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
+            case TAC_DIF: fprintf(fout,"## TAC_DIF\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tcmpl	%%eax, %%edx\n"
+                                            "\tsetne %%al\n"
+                                            "\tmovzbl %%al, %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                , tac->op1->text, tac->op2->text, tac->res->text); 
+                
+                break;
             case TAC_MOVE: fprintf(fout,"## TAC_MOVE\n" 
                                             "\tmovl _%s(%%rip), %%eax\n"
                                             "\tmovl %%eax, _%s(%%rip)\n"
                                         , tac->op1->text, tac->res->text); 
                 break;
             case TAC_VAR: break; //fprintf(fout,"TAC_VAR");
-            case TAC_MOVEVEC: fprintf(fout,"TAC_MOVEVEC"); break;
-            case TAC_VEC: fprintf(fout,"TAC_VEC"); break; // Iterar inicialização do vetor printando
-            case TAC_LEXP: fprintf(fout,"TAC_LEXP"); break;
-            case TAC_ACALL: fprintf(fout,"TAC_ACALL"); break;
-            case TAC_LABEL: fprintf(fout,"TAC_LABEL"); break;
-            case TAC_IFZ: fprintf(fout,"TAC_IFZ"); break;
-            case TAC_JUMP: fprintf(fout,"TAC_JUMP"); break;
-            case TAC_CALL: fprintf(fout,"TAC_CALL"); break; // move do registrador definido X para variável temporaria
-            case TAC_ARG: fprintf(fout,"TAC_ARG"); break; // move para argumentos globais da função
-            case TAC_RET: fprintf(fout,"TAC_RET"); break; // colocar em um registrador definido X
+            case TAC_MOVEVEC: fprintf(fout,"## TAC_MOVEVEC\n" 
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tmovl %%eax, %d+_%s(%%rip)\n"
+                                        , tac->op2->text, atoi(tac->op1->text)*4, tac->res->text); 
+            case TAC_VEC: break; // fprintf(fout,"TAC_VEC"); // Iterar inicialização do vetor printando
+            case TAC_LEXP: break; // fprintf(fout,"TAC_LEXP");
+            case TAC_ACALL: fprintf(fout,"## TAC_ACALL\n" 
+                                            "\tmovl %d+_%s(%%rip), %%eax\n"
+                                            "\tmovl %%eax, _%s(%%rip)\n"
+                                        , atoi(tac->op2->text)*4, tac->op1->text, tac->res->text); 
+                break;
+            case TAC_LABEL: fprintf(fout,"## TAC_LABEL\n"
+                                            ".%s:\n"
+                                        , tac->res->text); 
+                break;
+            case TAC_IFZ: fprintf(fout,"## TAC_IFZ\n"
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                            "\ttestl %%eax, %%eax\n"
+                                            "\tje .%s\n"
+                                        , tac->op1->text, tac->res->text); 
+                break;
+            case TAC_JUMP: fprintf(fout,"## TAC_JUMP\n"
+                                            "jmp .%s\n"
+                                        , tac->res->text); 
+                break;
+            case TAC_CALL: fprintf(fout,"## TAC_CALL\n");  // move para argumentos globais da função 
+                            // iterar argumentos
+                AST* funcParam = findDeclaration(tac->op1->text, mainNode);
+                funcParam = funcParam->son[1];
+                TAC *aux = tac->prev; 
+                while(funcParam) {
+                    fprintf(fout, "\tmovl _%s(%%rip), %%eax\n"
+                                    "\tmovl %%eax, _%s(%%rip)\n"
+                                    , aux->res->text, funcParam->symbol->text);
+                    funcParam = funcParam->son[1];
+                    aux = aux->prev;
+                }
+
+                            fprintf(fout, "\tcall %s\n" // chamar func, move do registrador definido X para variável temporaria
+                                            "\tmovl	%%eax, _%s(%%rip)\n"
+                                    , tac->op1->text, tac->res->text); 
+                break;
+            case TAC_ARG: break; // fprintf(fout,"## TAC_ARG\n")
+            case TAC_RET: fprintf(fout,"## TAC_RET\n" // colocar em um registrador definido X
+                                            "\tmovl _%s(%%rip), %%eax\n"
+                                    , tac->res->text); 
+                break;
             case TAC_PRINT: break; //fprintf(fout,"TAC_PRINT");
-            case TAC_READ: fprintf(fout,"TAC_READ"); break; //scanf 1 inteiro
+            case TAC_READ: fprintf(fout,"## TAC_READ\n" //scanf 1 inteiro
+                                            "\tleaq _%s(%%rip), %%rax\n"
+                                            "\tmovq %%rax, %%rsi\n"
+                                            "\tleaq .scanIntStr(%%rip), %%rax\n"
+                                            "\tmovq %%rax, %%rdi\n"
+                                            "\tmovl $0, %%eax\n"
+                                            "\tcall __isoc99_scanf@PLT\n"
+                                        , tac->res->text); 
+                                        
+                break;
             case TAC_PARAM: break; //fprintf(fout,"TAC_PARAM");
 
             default: fprintf(fout,"## TAC UNKNOW ERROR %d\n",tac->type); break;

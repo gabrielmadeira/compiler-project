@@ -283,6 +283,14 @@ void printDecAsm(AST* node, FILE *fout) {
             fprintf(fout, "\t.globl _%s\n"
 							"_%s: .long %s\n", node->symbol->text, node->symbol->text, node->son[1]->symbol->text);
             break;
+        case AST_GARR: 
+            fprintf(fout, "\t.globl _%s\n_%s:\n", node->symbol->text, node->symbol->text);
+            AST* LEXPNode = node->son[2];
+            while(LEXPNode){
+                fprintf(fout,"\t.long %s\n", LEXPNode->son[0]?LEXPNode->son[0]->symbol->text:"");
+                LEXPNode = LEXPNode->son[1];
+            }
+            break;
         case AST_SYMBOL: 
             if(node->symbol->type != SYMBOL_VAR && node->symbol->asmDefined != 1) {
                 fprintf(fout, "\t.globl _%s\n"

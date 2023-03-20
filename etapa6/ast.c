@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 
 extern FILE *outputFile;
@@ -275,10 +276,33 @@ void astDecompile(AST* node) {
     }
 }
 
+char *convertStrToId(char *str) {
+    int i;
+    char *modStr = (char *) calloc(strlen(str) + 1, sizeof(char));
+    strcpy(modStr, str);
+
+    for(i = 0; modStr[i]; ++i) {
+        if(!((modStr[i] >= 'a' && modStr[i] <= 'z') || 
+            (modStr[i] >= 'A' && modStr[i] <= 'Z') ||
+            (modStr[i] >= '0' && modStr[i] <= '9'))) {
+            int g = abs(modStr[i]);
+            //modStr[i] = '_';
+            char newChar = 'a'+(g%26);
+            modStr[i] = newChar;
+        }
+    }
+
+    return modStr;
+}
+
 void printDecAsm(AST* node, FILE *fout) {
 	if(!node) return;
 
     switch(node->type) {
+        case AST_FPL:
+            fprintf(fout, "\t.globl _%s\n"
+							"_%s: .long 0\n", node->symbol->text, node->symbol->text);
+            break;
         case AST_GVAR: 
             fprintf(fout, "\t.globl _%s\n"
 							"_%s: .long %s\n", node->symbol->text, node->symbol->text, node->son[1]->symbol->text);
@@ -298,8 +322,16 @@ void printDecAsm(AST* node, FILE *fout) {
                 node->symbol->asmDefined = 1;
             }
             break;
-
-        // TODO: fazer para vetor
+        case AST_LESTR:
+            if(node->symbol->asmDefined != 1) {
+                char *convertedStr = convertStrToId(node->symbol->text);
+                fprintf(fout,   "_%s_l:\n\t.string %s\n\t.section .data.rel.local,\"aw\"\n"
+                                "_%s: .quad _%s_l\n"
+                                ""
+                            , convertedStr, node->symbol->text, convertedStr, convertedStr);
+                node->symbol->asmDefined = 1;
+            }
+            break;
         default: break;
     }
 

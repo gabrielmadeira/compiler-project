@@ -1,17 +1,11 @@
-//inte a = 3;
-inte b = 1;
-inte x[4] 5 6 7 8;
-inte main(inte g, inte h) {
-    x[3] = 33;
-    b = x[3] + 4;
-    //x=entrada;
-    //b=777;
-    //x=a+b+99;
-    //escreva a;
-    //{ escreva a; } enquanto (x<4);
-    //entaum { escreva 888; } se (~(a==0) & (b==0));
-    //entaum { escreva 888; } senaum { escreva 777; } se (x<4);
-    //x = main(x, b);
-    //retorne x;
-    escreva b;
+inte a = 0;
+inte b = 0;
+inte res = 0;
+inte main() { 
+    escreva "Digite o operando A: ";
+    a = entrada;
+    escreva "\nDigite o operando B: ";
+    b = entrada;
+    res = a + b;
+    escreva "\nO resultado é " res "\n";
 }   

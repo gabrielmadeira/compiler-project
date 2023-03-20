@@ -1,19 +1,11 @@
 	.file	"test2.c"
 	.text
-	.globl	var1
+	.globl	a
 	.data
-	.align 8
-	.type	var1, @object
-	.size	var1, 8
-var1:
-	.long	7
-	.long	9
-	.globl	var2
-	.align 4
-	.type	var2, @object
-	.size	var2, 4
-var2:
-	.long	3
+	.type	a, @object
+	.size	a, 1
+a:
+	.byte	97
 	.text
 	.globl	main
 	.type	main, @function
@@ -26,8 +18,7 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	4+var1(%rip), %eax
-	movl	%eax, var2(%rip)
+	movb	$99, a(%rip)
 	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8

@@ -142,11 +142,11 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_GRE: result = makeBinaryOp(TAC_GRE, code); break;
         case AST_AND: result = makeBinaryOp(TAC_AND, code); break;
         case AST_OR: result = makeBinaryOp(TAC_OR, code); break;
-        case AST_NOT: result = makeBinaryOp(TAC_NOT, code); break;
+        case AST_NOT: result = tacJoin(code[0], tacCreate(TAC_NOT,makeTemp(),code[0]?code[0]->res:0,0)); break;
         case AST_LE: result = makeBinaryOp(TAC_LE, code); break;
         case AST_GE: result = makeBinaryOp(TAC_GE, code); break;
         case AST_EQ: result = makeBinaryOp(TAC_EQ, code); break;
-        case AST_DIF: result = tacJoin(code[0], tacCreate(TAC_DIF,makeTemp(),code[0]?code[0]->res:0,0)); break;
+        case AST_DIF: result = makeBinaryOp(TAC_DIF, code); break; 
 
         case AST_ASS: result = tacJoin(code[0], tacCreate(TAC_MOVE,node->symbol,code[0]?code[0]->res:0,0)); break;
         case AST_ARAS: result = tacJoin(code[0], tacJoin(code[1], tacCreate(TAC_MOVEVEC, node->symbol, code[0]?code[0]->res:0, code[1]?code[1]->res:0))); break; 
@@ -160,7 +160,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_GVAR: result = tacJoin(code[1], tacCreate(TAC_VAR,node->symbol,code[1]?code[1]->res:0,0)); break;
         case AST_GARR: result = tacJoin(tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0), tacJoin(code[1],code[2])); break;
         case AST_LEXP: result = tacJoin(tacCreate(TAC_LEXP, code[0]->res, 0, 0), code[1]); break; // expressão inicialização vetor
-        case AST_LDCF: result = makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]); break;
+        case AST_LDCF: result = tacJoin(makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]), code[3]); break;
         case AST_FPL: result = tacJoin(tacCreate(TAC_PARAM, node->symbol, 0, 0), code[1]); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
         case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 

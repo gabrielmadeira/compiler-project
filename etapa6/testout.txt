@@ -1,7 +1,79 @@
-inte b=1;
-inte x[4] 5 6 7 8 ;
-inte main (inte g inte h )  {
-x[3]=33;
-b=x[3]+4;
-escreva b ;
+inte i=0;
+inte stack_pointer=0;
+inte stack[20] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ;
+inte stack_max_size=20;
+inte operation=0;
+inte input=0;
+inte print_stack ()  {
+escreva "=============================================\n" ;
+escreva "STACK: " ;
+i=0;
+ {
+escreva stack[i] " " ;
+i=i+1;
+ }
+enquanto (i<stack_pointer);
+escreva "\n" ;
+escreva "=============================================\n" ;
+i=0;
+retorne 0;
+ }
+inte main ()  {
+escreva "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣶⣿⣿⣿⣿⣶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⢀⣤⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⡀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠈⠙⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠋⠁⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⢀⣠⣌⡙⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⢋⣡⣄⡀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠘⠿⣿⣿⣿⣷⣦⣈⠙⠿⣿⣿⣿⣿⠿⠋⣁⣴⣾⣿⣿⣿⠿⠃⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⢈⠙⠻⢿⣿⣿⣷⣦⣄⡉⢉⣠⣴⣾⣿⣿⡿⠟⠋⡁⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⢠⣶⣿⣿⣶⣄⡉⠛⠿⣿⣿⣿⣿⣿⣿⠿⠛⢉⣠⣶⣿⣿⣶⡄⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠈⠙⠻⢿⣿⣿⣷⣦⣌⡉⠻⠟⢉⣡⣴⣾⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⢀⣠⣶⣶⣤⡈⠛⠿⣿⣿⣿⣷⣾⣿⣿⣿⠿⠛⢁⣤⣶⣶⣄⡀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠈⠛⠿⣿⣿⣿⣷⣦⣈⠙⠿⣿⣿⠿⠋⣁⣴⣾⣿⣿⣿⠿⠛⠁⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⠀⠈⠙⠻⢿⣿⣿⣷⣦⣄⣠⣴⣾⣿⣿⡿⠟⠋⠁⠀⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠿⣿⣿⣿⣿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" ;
+escreva "⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀\n" ;
+escreva "===============================\n" ;
+escreva "           Welcome to \n" ;
+escreva "          +-+-+-+-+-+\n" ;
+escreva "          |S|T|A|C|K|\n" ;
+escreva "      +-+-+-+-+-+-+-+-+-+\n" ;
+escreva "      |S|I|M|U|L|A|T|O|R|\n" ;
+escreva "      +-+-++-+-+-+-++-+-+\n" ;
+escreva "           |2|0|2|3|\n" ;
+escreva "           +-+-+-+-+\n\n" ;
+escreva "      by Gabriel Madeira\n" ;
+escreva "===============================\n" ;
+ {
+escreva "Choose a stack operation:\n 1: Push\n 2: Pop\n 3: Exit\n Operation: " ;
+operation=entrada ;
+entaum  {
+entaum  {
+entaum  {
+escreva "Enter a value to push: " ;
+input=entrada ;
+stack[stack_pointer]=input;
+stack_pointer=stack_pointer+1;
+ }
+ senaum stack_pointer<stack_max_size-1 se ( {
+escreva "Stack is full!\n" ;
+ }
+);
+ }
+ senaum operation==1 se ( {
+entaum  {
+stack_pointer=stack_pointer-1;
+ }
+ senaum stack_pointer>0 se ( {
+escreva "Stack has no value!\n" ;
+ }
+);
+ }
+);
+i=print_stack();
+ }
+ se (operation==1|operation==2);
+ }
+enquanto (operation!=3);
  }

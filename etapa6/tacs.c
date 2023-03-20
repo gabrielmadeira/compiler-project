@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "tacs.h"
 #include "semantic.h"
+#include "ast.h"
 
 TAC * tacCreate(int type, HASH *res, HASH *op1, HASH *op2) {
     TAC* newtac = 0;
@@ -143,25 +144,25 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_GRE: result = makeBinaryOp(TAC_GRE, code); break;
         case AST_AND: result = makeBinaryOp(TAC_AND, code); break;
         case AST_OR: result = makeBinaryOp(TAC_OR, code); break;
-        case AST_NOT: result = makeBinaryOp(TAC_NOT, code); break;
+        case AST_NOT: result = tacJoin(code[0], tacCreate(TAC_NOT,makeTemp(),code[0]?code[0]->res:0,0)); break;
         case AST_LE: result = makeBinaryOp(TAC_LE, code); break;
         case AST_GE: result = makeBinaryOp(TAC_GE, code); break;
         case AST_EQ: result = makeBinaryOp(TAC_EQ, code); break;
-        case AST_DIF: result = tacJoin(code[0], tacCreate(TAC_DIF,makeTemp(),code[0]?code[0]->res:0,0)); break;
+        case AST_DIF: result = makeBinaryOp(TAC_DIF, code); break;
 
         case AST_ASS: result = tacJoin(code[0], tacCreate(TAC_MOVE,node->symbol,code[0]?code[0]->res:0,0)); break;
         case AST_ARAS: result = tacJoin(code[0], tacJoin(code[1], tacCreate(TAC_MOVEVEC, node->symbol, code[0]?code[0]->res:0, code[1]?code[1]->res:0))); break; 
         case AST_ACALL: result = tacJoin(code[0], tacCreate(TAC_ACALL, makeTemp(), node->symbol, code[0]?code[0]->res:0)); break;
         case AST_RET: result = tacJoin(code[0], tacCreate(TAC_RET, code[0]?code[0]->res:0, 0, 0)); break;
         case AST_ESCR: result = tacJoin(code[0], tacCreate(TAC_PRINT, 0, 0, 0)); break; // TODO string/expr
-        case AST_LEEXP: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_PRINTL, code[0]->res, 0, 0))); break;
-        case AST_LESTR: result = tacJoin(code[0], tacCreate(TAC_PRINTL, node->symbol, 0, 0)); break;
+        case AST_LEEXP: result = tacJoin(tacJoin(code[0], tacCreate(TAC_PRINTL, code[0]->res, 0, 0)), code[1]); break;
+        case AST_LESTR: result = tacJoin(tacCreate(TAC_PRINTL, node->symbol, 0, 0), code[0]); break;
         case AST_ENTRADA: result = tacCreate(TAC_READ, makeTemp(), 0, 0); break;
 
         case AST_GVAR: result = tacJoin(code[1], tacCreate(TAC_VAR,node->symbol,code[1]?code[1]->res:0,0)); break;
         case AST_GARR: result = tacJoin(tacCreate(TAC_VEC, node->symbol, code[1]?code[1]->res:0,0), tacJoin(code[1],code[2])); break;
         case AST_LEXP: result = tacJoin(tacCreate(TAC_LEXP, code[0]->res, 0, 0), code[1]); break; // expressão inicialização vetor
-        case AST_LDCF: result = makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]); break;
+        case AST_LDCF: result = tacJoin(makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]), code[3]); break;
         case AST_FPL: result = tacJoin(code[1], tacCreate(TAC_PARAM, node->symbol, 0, 0)); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
         case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 
@@ -191,8 +192,8 @@ void generateAsm(TAC *first, AST *mainNode) {
     // Init
     fprintf(fout,"## FIXED INIT\n"
                 ".scanIntStr: .string	\"%%d\"\n"
-                ".printIntStr: .string	\"%%d\\n\"\n"
-                ".printStringStr: .string \"%%s\\n\"\n");
+                ".printIntStr: .string	\"%%d\"\n"
+                ".printStringStr: .string \"%%s\"\n");
 
 
     // Each tac
@@ -214,11 +215,19 @@ void generateAsm(TAC *first, AST *mainNode) {
                 break;
 
             case TAC_PRINTL: // TODO: fazer para printstring
-                fprintf(fout,"## TAC_PRINTINT\n"
-                                "\tmovl _%s(%%rip), %%esi\n"
-                                "\tleaq .printIntStr(%%rip), %%rax\n"
-                                "\tmovq %%rax, %%rdi\n"
-                                "\tcall printf@PLT\n",tac->res->text);
+                //convertStrToId(char *str)
+                if(tac->res->type == SYMBOL_LIT_STRING || tac->res->type == SYMBOL_LIT_CARA) {
+                    fprintf(fout,   "## TAC_PRINTL (string)\n"
+                                    "\tmovq _%s(%%rip), %%rax\n"
+                                    "\tmovq %%rax, %%rsi\n"
+                                    "\tleaq .printStringStr(%%rip), %%rax\n", convertStrToId(tac->res->text));
+                }else{
+                    fprintf(fout,   "## TAC_PRINTL (int)\n"
+                                    "\tmovl _%s(%%rip), %%esi\n"
+                                    "\tleaq .printIntStr(%%rip), %%rax\n", tac->res->text);
+                }
+                fprintf(fout,   "\tmovq %%rax, %%rdi\n"
+                                "\tcall printf@PLT\n");
                 break;
 
 
@@ -231,8 +240,8 @@ void generateAsm(TAC *first, AST *mainNode) {
                 
                 break;
             case TAC_SUB: fprintf(fout,"## TAC_SUB\n"
-                                            "\tmovl _%s(%%rip), %%edx\n"
                                             "\tmovl _%s(%%rip), %%eax\n"
+                                            "\tmovl _%s(%%rip), %%edx\n"
                                             "\tsubl %%edx, %%eax\n"
                                             "\tmovl %%eax, _%s(%%rip)\n"
                                 , tac->op1->text, tac->op2->text, tac->res->text); 
@@ -346,15 +355,23 @@ void generateAsm(TAC *first, AST *mainNode) {
                 break;
             case TAC_VAR: break; //fprintf(fout,"TAC_VAR");
             case TAC_MOVEVEC: fprintf(fout,"## TAC_MOVEVEC\n" 
+                                            "\tmovl _%s(%%rip), %%edx\n"
                                             "\tmovl _%s(%%rip), %%eax\n"
-                                            "\tmovl %%eax, %d+_%s(%%rip)\n"
-                                        , tac->op2->text, atoi(tac->op1->text)*4, tac->res->text); 
+                                            "\tmovslq %%edx, %%rdx\n"
+                                            "\tleaq 0(,%%rdx,4), %%rcx\n"
+                                            "\tleaq _%s(%%rip), %%rdx\n"
+                                            "\tmovl %%eax, (%%rcx,%%rdx)\n"
+                                        , tac->op1->text, tac->op2->text, tac->res->text); 
             case TAC_VEC: break; // fprintf(fout,"TAC_VEC"); // Iterar inicialização do vetor printando
             case TAC_LEXP: break; // fprintf(fout,"TAC_LEXP");
             case TAC_ACALL: fprintf(fout,"## TAC_ACALL\n" 
-                                            "\tmovl %d+_%s(%%rip), %%eax\n"
+                                            "\tmovl	_%s(%%rip), %%eax\n"
+                                            "\tcltq\n"
+                                            "\tleaq 0(,%%rax,4), %%rdx\n"
+                                            "\tleaq _%s(%%rip), %%rax\n"
+                                            "\tmovl (%%rdx,%%rax), %%eax\n"
                                             "\tmovl %%eax, _%s(%%rip)\n"
-                                        , atoi(tac->op2->text)*4, tac->op1->text, tac->res->text); 
+                                        , tac->op2->text, tac->op1->text, tac->res->text);
                 break;
             case TAC_LABEL: fprintf(fout,"## TAC_LABEL\n"
                                             ".%s:\n"
@@ -374,8 +391,11 @@ void generateAsm(TAC *first, AST *mainNode) {
                             // iterar argumentos
                 AST* funcParam = findDeclaration(tac->op1->text, mainNode);
                 funcParam = funcParam->son[1];
-                TAC *aux = tac->prev; 
+                TAC *aux = tac; 
                 while(funcParam) {
+                    while(aux->type != TAC_ARG) {
+                        aux = aux->prev;
+                    }
                     fprintf(fout, "\tmovl _%s(%%rip), %%eax\n"
                                     "\tmovl %%eax, _%s(%%rip)\n"
                                     , aux->res->text, funcParam->symbol->text);

@@ -63,5 +63,6 @@ AST * astCreate(int type, HASH * symbol, AST* son0, AST* son1, AST* son2, AST* s
 void astPrint(AST* node, int level);
 void astDecompile(AST* node);
 void printDecAsm(AST* node, FILE *fout);
+char *convertStrToId(char *str);
 
 #endif

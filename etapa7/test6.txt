@@ -1,0 +1,12 @@
+inte a = 1;
+inte b = 1;
+inte c = 1;
+inte res = 0;
+inte aux(inte pp, inte p2) {
+    retorne (pp+a+b+c+p2);
+}
+
+inte main() {
+    res = aux(7*1*5,(3*4)-4);
+    escreva res "\n";
+}

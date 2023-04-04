@@ -1,0 +1,11 @@
+inte a = 0;
+inte b = 0;
+inte res = 0;
+inte main() { 
+    escreva "Digite o operando A: ";
+    a = entrada;
+    escreva "\nDigite o operando B: ";
+    b = entrada;
+    res = a + b;
+    escreva "\nO resultado é " res "\n";
+}   

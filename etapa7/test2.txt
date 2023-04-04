@@ -1,0 +1,17 @@
+inte a = 5;
+real r = 1.1;
+inte vec[4] 4 3 2 1;
+inte main(inte i, real g) {
+    //i = i + 1 + 2;
+    vec[2] = main(i+1, r+2.2);
+    entaum {
+        i = 5;
+    } senaum {
+        i = 9;
+    } se (i == 4);
+    escreva "oi";
+    i = entrada;
+    i = vec[2] + 1 + a
+    retorne 4;
+    { i=i+1 } enquanto (i>2);
+}

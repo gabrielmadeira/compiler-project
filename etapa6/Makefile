@@ -1,6 +1,6 @@
 # Gabriel Madeira (00322863)
 
-etapa5: main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
+etapa6: main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
 		gcc -o etapa6 main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
 
 main.o: main.c

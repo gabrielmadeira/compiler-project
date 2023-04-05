@@ -18,6 +18,7 @@ int yyparse();
 
 int getLineNumber();
 void initMe();
+int getSyntaxErrors();
 
 int main(int argc, char **argv) {
 	
@@ -38,6 +39,23 @@ int main(int argc, char **argv) {
 
 	yyparse();
 
+	printf("\nPerforming Semantic Verification...\n");
+	semanticVerification(mainNode);
+
+
+	int syntaxErrors = getSyntaxErrors();
+	if(syntaxErrors > 0) {
+		fprintf(stderr, "%d Syntax errors detected, exiting...\n", syntaxErrors);
+	}
+
+	int semanticErrors = getSemanticErrors();
+	if(semanticErrors > 0) {
+		fprintf(stderr, "%d Semantic errors detected, exiting...\n", semanticErrors);
+		exit(4);	
+	}
+	if(syntaxErrors > 0) exit(3);
+
+
 	printf("\nDecompiling...\n");
 	astDecompile(mainNode);
 
@@ -46,15 +64,6 @@ int main(int argc, char **argv) {
 
 	printf("\nHash Content:\n");
 	hashPrint();
-
-	printf("\nPerforming Semantic Verification...\n");
-	semanticVerification(mainNode);
-
-	int semanticErrors = getSemanticErrors();
-	if(semanticErrors > 0) {
-		fprintf(stderr, "%d Semantic errors detected, exiting...\n", semanticErrors);
-		exit(4);	
-	}
 
 	printf("\nGenerating Code...\n");
 	TAC *code = generateCode(mainNode, 0);

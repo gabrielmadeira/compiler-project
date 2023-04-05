@@ -1,7 +1,7 @@
 # Gabriel Madeira (00322863)
 
-etapa5: main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
-		gcc -o etapa6 main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
+etapa7: main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o
+		gcc -o etapa7 main.o y.tab.o lex.yy.o hash.o tacs.o ast.o semantic.o -lm
 
 main.o: main.c
 	gcc -c main.c
@@ -31,4 +31,4 @@ lex.yy.c: scanner.l
 		flex --header-file=lex.yy.h scanner.l
 
 clean:
-	rm *.o lex.yy.c y.tab.c y.tab.h lex.yy.h etapa6
+	rm *.o lex.yy.c y.tab.c y.tab.h lex.yy.h etapa7

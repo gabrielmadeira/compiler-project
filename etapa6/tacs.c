@@ -165,7 +165,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_LDCF: result = tacJoin(makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]), code[3]); break;
         case AST_FPL: result = tacJoin(code[1], tacCreate(TAC_PARAM, node->symbol, 0, 0)); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
-        case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 
+        case AST_FCPL: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0))); break; 
         
         case AST_ENTSE: result = makeIfThen(code[1], code[0], 0); break;
         case AST_ENTSNSE: result = makeIfThen(code[1], code[0], code[2]); break;

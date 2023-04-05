@@ -4,6 +4,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <ctype.h>
 #include "tacs.h"
 #include "semantic.h"
 #include "ast.h"
@@ -165,7 +168,7 @@ TAC *generateCode(AST * node, HASH *currentLoopLabel) {
         case AST_LDCF: result = tacJoin(makeFunction(tacCreate(TAC_SYMBOL, node->symbol, 0, 0), code[1], code[2]), code[3]); break;
         case AST_FPL: result = tacJoin(code[1], tacCreate(TAC_PARAM, node->symbol, 0, 0)); break; 
         case AST_FCALL: result = tacJoin(code[0], tacCreate(TAC_CALL, makeTemp(), node->symbol, 0)); break;
-        case AST_FCPL: result = tacJoin(tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0)),code[1]); break; 
+        case AST_FCPL: result = tacJoin(code[1], tacJoin(code[0], tacCreate(TAC_ARG, code[0]?code[0]->res:0, 0, 0))); break; 
         
         case AST_ENTSE: result = makeIfThen(code[1], code[0], 0); break;
         case AST_ENTSNSE: result = makeIfThen(code[1], code[0], code[2]); break;
@@ -231,12 +234,17 @@ void generateAsm(TAC *first, AST *mainNode) {
                 break;
 
 
-            case TAC_ADD: fprintf(fout,"## TAC_ADD\n" 
-                                            "\tmovl _%s(%%rip), %%edx\n"
-                                            "\tmovl _%s(%%rip), %%eax\n"
-                                            "\taddl %%edx, %%eax\n"
-                                            "\tmovl %%eax, _%s(%%rip)\n"
-                                    , tac->op1->text, tac->op2->text, tac->res->text);
+            case TAC_ADD: 
+                fprintf(fout,"## TAC_ADD\n");
+
+                fprintf(fout, "\tmovl _%s(%%rip), %%eax\n", tac->op1->text);
+                if(!strcmp(tac->op1->text, tac->op2->text)) {
+                    fprintf(fout, "\tsall $1, %%eax\n");
+                }else{
+                    fprintf(fout, "\tmovl _%s(%%rip), %%edx\n", tac->op2->text);
+                    fprintf(fout, "\taddl %%edx, %%eax\n");
+                }
+                    fprintf(fout, "\tmovl %%eax, _%s(%%rip)\n", tac->res->text);
                 
                 break;
             case TAC_SUB: fprintf(fout,"## TAC_SUB\n"
@@ -247,12 +255,41 @@ void generateAsm(TAC *first, AST *mainNode) {
                                 , tac->op1->text, tac->op2->text, tac->res->text); 
                 
                 break;
-            case TAC_MUL: fprintf(fout,"## TAC_MUL\n"
-                                            "\tmovl _%s(%%rip), %%edx\n"
-                                            "\tmovl _%s(%%rip), %%eax\n"
-                                            "\timull %%edx, %%eax\n"
-                                            "\tmovl %%eax, _%s(%%rip)\n"
-                                , tac->op1->text, tac->op2->text, tac->res->text); 
+            case TAC_MUL: 
+                fprintf(fout,"## TAC_MUL\n");
+
+                if(!strcmp(tac->op1->text, "0") || !strcmp(tac->op2->text, "0")) {
+                    fprintf(fout, "\tmovl $0, _%s(%%rip)\n", tac->res->text);
+                }else{
+
+
+                    int op1 = atoi(tac->op1->text);
+                    int isDigitOp1 = isdigit(tac->op1->text[0]);
+                    int op2 = atoi(tac->op2->text);
+                    int isDigitOp2 = isdigit(tac->op2->text[0]);
+
+                    if(isDigitOp1 && (ceil(log2(op1)) == floor(log2(op1)))) {
+                        if(isDigitOp2 && (ceil(log2(op2)) == floor(log2(op2)))) {
+                            fprintf(fout, "\tmovl	$1, %%eax\n");
+                            fprintf(fout, "\tsall	$%d, %%eax\n", (int) log2(op2 * op1));
+                            fprintf(fout, "\tmovl	%%eax, _%s(%%rip)\n", tac->res->text);
+                        } else {
+                            fprintf(fout, "\tmovl	_%s(%%rip), %%eax\n", tac->op2->text);
+                            fprintf(fout, "\tsall	$%d, %%eax\n", (int) log2(op1));
+                            fprintf(fout, "\tmovl	%%eax, _%s(%%rip)\n", tac->res->text);
+                        }
+                    } else if(isDigitOp2 && (ceil(log2(op2)) == floor(log2(op2)))) {
+                        fprintf(fout, "\tmovl	_%s(%%rip), %%eax\n", tac->op1->text);
+                        fprintf(fout, "\tsall	$%d, %%eax\n", (int) log2(op2));
+                        fprintf(fout, "\tmovl	%%eax, _%s(%%rip)\n\n", tac->res->text);
+                    } else {
+                        fprintf(fout, "\tmovl _%s(%%rip), %%edx\n"
+                                        "\tmovl _%s(%%rip), %%eax\n"
+                                        "\timull %%edx, %%eax\n"
+                                        "\tmovl %%eax, _%s(%%rip)\n"
+                            , tac->op1->text, tac->op2->text, tac->res->text); 
+                    }
+                }
                 
                 break;
             case TAC_DIV: fprintf(fout,"## TAC_DIV\n"

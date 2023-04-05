@@ -11,10 +11,11 @@
     AST *mainNode;
 
     int yylex(void); 
-	int getLineNumber();
+    int getLineNumber();
 
     void yyerror();
 
+    int syntaxErrors = 0;
 %}
 
 %union 
@@ -79,17 +80,21 @@ program: lDecl { $$ = $1; mainNode = $$; }
 
 lDecl: gvar ';' lDecl { $$ = astCreate(AST_LDCG, 0,$1,$3,0,0); } 
         | type TK_IDENTIFIER '(' fParamList ')' block lDecl { $$ = astCreate(AST_LDCF, $2,$1,$4,$6,$7); } // TODO? problema $7
+        | type TK_IDENTIFIER '(' fParamList ')' error lDecl { $$ = astCreate(AST_LDCF, $2,$1,$4,astCreate(AST_BLOCK, 0,0,0,0,0),$7); fprintf(stderr,"Expecting block declaration in function declaration.\n"); }
+        | gvar error lDecl { $$ = astCreate(AST_LDCG, 0,$1,$3,0,0); fprintf(stderr,"Expecting ; in global variable declaration.\n"); }
         | { $$ = 0; }
         ;
 
 lCom: cmd ';' lCom { $$ = astCreate(AST_LCMD, 0,$1,$3,0,0); } 
         | cmd { $$ = $1; }
+        | cmd error lCom { $$ = astCreate(AST_LCMD, 0,$1,$3,0,0); fprintf(stderr,"Expecting ; in command list.\n"); }
         ;       
 
 cmd:    TK_IDENTIFIER '=' expr { $$ = astCreate(AST_ASS, $1,$3,0,0,0); }
         | TK_IDENTIFIER '[' expr ']' '=' expr { $$ = astCreate(AST_ARAS, $1,$3,$6,0,0); }
 
         | KW_ENTAUM cmd KW_SE '(' expr ')' { $$ = astCreate(AST_ENTSE, 0,$2,$5,0,0); }
+        | KW_ENTAUM cmd KW_SE error { $$ = astCreate(AST_ENTSE, 0,$2,astCreate(AST_ENTRADA, 0,0,0,0,0),0,0); fprintf(stderr,"Expecting expression in 'entaum se' command in the format '(expression)'.\n"); }
         | KW_ENTAUM cmd KW_SENAUM cmd KW_SE '(' expr ')' { $$ = astCreate(AST_ENTSNSE, 0,$2,$7,$4,0); }
         | cmd KW_ENQUANTO '(' expr ')' { $$ = astCreate(AST_ENQ, 0,$1,$4,0,0); }
 
@@ -121,6 +126,7 @@ expr:   LIT_INTEIRO { $$ = astCreate(AST_SYMBOL, $1,0,0,0,0); }
         | LIT_FLOAT { $$ = astCreate(AST_SYMBOL, $1,0,0,0,0); } 
         | TK_IDENTIFIER { $$ = astCreate(AST_SYMBOL, $1,0,0,0,0); } 
         | TK_IDENTIFIER '[' expr ']' { $$ = astCreate(AST_ACALL, $1,$3,0,0,0); } 
+        | TK_IDENTIFIER '[' error  { $$ = astCreate(AST_ACALL, $1,astCreate(AST_ENTRADA, 0,0,0,0,0),0,0,0); fprintf(stderr,"Expecting array call in array_name[index] format.\n"); } 
         | TK_IDENTIFIER '(' fCallParamList ')' { $$ = astCreate(AST_FCALL, $1,$3,0,0,0); } 
         | expr '+' expr { $$ = astCreate(AST_ADD, 0,$1,$3,0,0); }
         | expr '-' expr { $$ = astCreate(AST_SUB, 0,$1,$3,0,0); }
@@ -137,9 +143,11 @@ expr:   LIT_INTEIRO { $$ = astCreate(AST_SYMBOL, $1,0,0,0,0); }
         | expr OPERATOR_DIF expr { $$ = astCreate(AST_DIF, 0,$1,$3,0,0); }
         | '(' expr ')' { $$ = astCreate(AST_PAR, 0,$2,0,0,0); } 
         | KW_ENTRADA { $$ = astCreate(AST_ENTRADA, 0,0,0,0,0); } 
+        | error { $$ = astCreate(AST_ENTRADA, 0,0,0,0,0); fprintf(stderr,"Expecting expression.\n"); }
         ;
 
 block: '{' lCom '}' { $$ = astCreate(AST_BLOCK, 0,$2,0,0,0); } 
+//        | '{' lCom error { $$ = astCreate(AST_BLOCK, 0,$2,0,0,0); fprintf(stderr,"Missing char '}' to close the block.\n"); } 
     ;
 
 fParamList:  type TK_IDENTIFIER fParamList { $$ = astCreate(AST_FPL, $2,$1,$3,0,0); } 
@@ -149,6 +157,7 @@ fParamList:  type TK_IDENTIFIER fParamList { $$ = astCreate(AST_FPL, $2,$1,$3,0,
 type:   KW_INTE { $$ = astCreate(AST_INTE, 0,0,0,0,0); } 
         | KW_CARA { $$ = astCreate(AST_CARA, 0,0,0,0,0); } 
         | KW_REAL { $$ = astCreate(AST_REAL, 0,0,0,0,0); } 
+        | error { $$ = astCreate(AST_INTE, 0,0,0,0,0); fprintf(stderr,"Invalid type name.\n"); }
         ;
 
 fCallParamList: expr fCallParamList { $$ = astCreate(AST_FCPL, 0,$1,$2,0,0); } 
@@ -162,5 +171,10 @@ fCallParamList: expr fCallParamList { $$ = astCreate(AST_FCPL, 0,$1,$2,0,0); }
 
 void yyerror() {
     fprintf(stderr,"Opps. Syntax error! Line %d\n", getLineNumber());
-    exit(3);
+    syntaxErrors++;
+    //exit(3);
+}
+
+int getSyntaxErrors() {
+    return syntaxErrors;
 }

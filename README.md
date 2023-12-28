@@ -10,3 +10,9 @@ The goal of this project was to build a compiler from scratch for a language spe
 - 7: compiler error recovery and optimization.
 
 This project was developed for the Compilers course at [INF](https://inf.ufrgs.br)-[UFRGS](https://ufrgs.br).
+
+### Code compilation example 1
+![Code compilation example 1](example1.gif)
+
+### Code compilation example 2
+![Code compilation example 2](example2.gif)
